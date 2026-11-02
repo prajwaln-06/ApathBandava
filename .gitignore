@@ -18,3 +18,13 @@ reports/
 node_modules/
 .vscode/
 .idea/
+# user-supplied credentials & private refs (never commit)
+docs/.references
+docs/google_credentials.json
+docs/MODELS.md
+**/google_credentials*.json
+**/*credentials*.json
+**/.references
+secrets/
+# local tooling
+.tools/
