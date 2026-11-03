@@ -136,11 +136,19 @@ def decode_qr(img: Any) -> list[str]:
     return _dedupe(payloads)
 
 
+WRAPPED_URL = re.compile(r"([\w/:]*[\w-]\.[\w.-]*[-./])[ \t]*\n[ \t]*(?=[\w-]+[./])")
+
+
+def join_wrapped_urls(text: str) -> str:
+    """Screenshots wrap long links ("sbi.bank.in-\\nkyc-update.example"); re-join them for extraction."""
+    return WRAPPED_URL.sub(r"\1", text or "")
+
+
 def extract(text: str, registry: Registry, image_path: str | None = None, media_dir: str = "/media") -> dict[str, Any]:
     ocr_text, qr_payloads = "", []
     if image_path:
         ocr_text, qr_payloads = ocr_and_qr(safe_image_path(image_path, media_dir))
-    corpus = "\n".join([text or "", ocr_text, *qr_payloads])
+    corpus = "\n".join([text or "", join_wrapped_urls(ocr_text), *qr_payloads])
     upi_uris = _dedupe([_clean(m.group(0)) for m in UPI_URI_RX.finditer(corpus)])
     urls = extract_urls(corpus)
     upi_ids = _dedupe([m.group(1) for m in UPI_ID_RX.finditer(UPI_URI_RX.sub(" ", URL_RX.sub(" ", corpus)))])

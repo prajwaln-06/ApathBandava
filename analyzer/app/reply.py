@@ -22,7 +22,7 @@ VERDICT_LINE = {
 EMOJI = {"SCAM": "🚫", "SUSPICIOUS": "⚠️", "NO_RED_FLAGS": "✅"}
 ALLOWED_HOSTS = {"cybercrime.gov.in", "sancharsaathi.gov.in", "www.cybercrime.gov.in", "www.sancharsaathi.gov.in"}
 BANNED = re.compile(r"\bsafe(ly|ty)?\b|सुरक्षित", re.I)
-URL_IN_TEXT = re.compile(r"(?:https?://)?(?:www\.)?((?:[a-z0-9\-]+\.)+[a-z]{2,})(?:/[^\s]*)?", re.I)
+URL_IN_TEXT = re.compile(r"(?<![\w.@-])(?:(?:https?|hxxps?)://)?(?:www\.)?((?:[a-z0-9\-]+\.)+[a-z]{2,})(?![\w@-]|\.[\w@])(?:/[^\s]*)?", re.I)
 NUM_IN_TEXT = re.compile(r"(?<![\d₹,.])(?:\+?\d[\d\s\-]{2,16}\d)(?![\d,.])")
 SMS_LIKE = re.compile(r"\b(dear\s+customer|a/c|acct|debited|credited|otp|txn|kyc|your\s+account)\b", re.I)
 
@@ -46,9 +46,39 @@ CAUTION = {"en": "This doesn't guarantee it's genuine — stay alert.", "hi": "�
 HINT_SMS = {"en": "Tip: a pasted SMS loses its sender ID. Send a screenshot that shows the sender for a better check.",
             "hi": "सुझाव: कॉपी किए गए SMS में भेजने वाले की ID नहीं होती। बेहतर जाँच के लिए भेजने वाले वाला स्क्रीनशॉट भेजें।"}
 WHY = {"en": "Why:", "hi": "कारण:"}
-SOURCE = {"en": "Official source:", "hi": "आधिकारिक स्रोत:"}
+SOURCE = {"en": "Source:", "hi": "स्रोत:"}
 TODO = {"en": "What to do:", "hi": "क्या करें:"}
 HELPLINE = {"en": "{name} official helpline: {num}", "hi": "{name} की आधिकारिक हेल्पलाइन: {num}"}
+
+
+def _bare(host: str) -> str:
+    host = host.lower()
+    return host[4:] if host.startswith("www.") else host
+
+
+def _official_hosts(ctx: dict[str, Any]) -> set[str]:
+    hosts = {_bare(h) for h in ALLOWED_HOSTS}
+    for src in ctx.get("sources") or []:
+        hosts.add(_bare(re.sub(r"^https?://", "", src).split("/")[0]))
+    hosts |= {_bare(d) for d in ctx.get("official_domains") or []}
+    return hosts
+
+
+def _host_ok(host: str, allowed: set[str]) -> bool:
+    host = _bare(host)
+    return host in allowed or any(host.endswith("." + h) for h in allowed)
+
+
+def defang(text: str, ctx: dict[str, Any]) -> str:
+    """Make every non-official link unclickable in WhatsApp (example[.]com, hxxp://)."""
+    allowed = _official_hosts(ctx)
+
+    def sub(m: re.Match[str]) -> str:
+        if _host_ok(m.group(1).lower(), allowed):
+            return m.group(0)
+        return re.sub(r"^http", "hxxp", m.group(0), flags=re.I).replace(".", "[.]")
+
+    return URL_IN_TEXT.sub(sub, text)
 
 
 def build_context(verdict: dict[str, Any], ext: dict[str, Any], findings: list[dict[str, Any]], language: str,
@@ -111,10 +141,10 @@ def fallback_reply(ctx: dict[str, Any]) -> str:
         lines.append("• " + HELPLINE[lang].format(name=ctx["helpline"]["institution"], num=ctx["helpline"]["number"]))
     if ctx.get("hint"):
         lines.append(ctx["hint"])
-    text = "\n".join(lines)
+    text = defang("\n".join(lines), ctx)
     while len(text) > MAX_LEN and len(lines) > 3:
         lines.pop(-2 if ctx.get("hint") else 1)
-        text = "\n".join(lines)
+        text = defang("\n".join(lines), ctx)
     return text[:MAX_LEN]
 
 
@@ -131,18 +161,16 @@ def validate_reply(text: Any, ctx: dict[str, Any]) -> list[str]:
         problems.append("verdict_line")
     if BANNED.search(text):
         problems.append("says_safe")
-    allowed_hosts = set(ALLOWED_HOSTS)
-    for src in ctx.get("sources") or []:
-        allowed_hosts.add(re.sub(r"^https?://", "", src).split("/")[0].lower())
-    allowed_hosts |= {d.lower() for d in ctx.get("official_domains") or []}
+    allowed_hosts = _official_hosts(ctx)
+    ctx_text = " ".join([*(ctx.get("reasons") or []), ctx.get("special_line") or "", ctx.get("playbook_advice") or ""])
+    ctx_hosts = {m.group(1).lower() for m in URL_IN_TEXT.finditer(ctx_text)}
     for m in URL_IN_TEXT.finditer(text):
         host = m.group(1).lower()
-        if host not in allowed_hosts and not any(host.endswith("." + h) for h in allowed_hosts):
-            problems.append(f"url:{host}")
+        if not _host_ok(host, allowed_hosts) and host not in ctx_hosts:
+            problems.append(f"url:{host}")  # a link that is not in the verdict input
     allowed_nums = {"1930"}
     if ctx.get("helpline"):
         allowed_nums.add(digits(ctx["helpline"]["number"]))
-    ctx_text = " ".join([*(ctx.get("reasons") or []), ctx.get("special_line") or "", ctx.get("playbook_advice") or ""])
     allowed_nums |= set(re.findall(r"\d{4,}", re.sub(r"(?<=\d)[,\s\-](?=\d)", "", ctx_text)))
     for m in NUM_IN_TEXT.finditer(text):
         num = digits(m.group(0))
@@ -155,4 +183,4 @@ def finalize(text: Any, ctx: dict[str, Any]) -> dict[str, Any]:
     problems = validate_reply(text, ctx)
     if problems:
         return {"reply": fallback_reply(ctx), "used_fallback": True, "problems": problems}
-    return {"reply": text.strip(), "used_fallback": False, "problems": []}
+    return {"reply": defang(text.strip(), ctx), "used_fallback": False, "problems": []}

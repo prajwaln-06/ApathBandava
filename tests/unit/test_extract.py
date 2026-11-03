@@ -110,3 +110,21 @@ def test_media_path_guard(media):
     big.write_bytes(b"0" * (ex.MAX_IMAGE_BYTES + 1))
     with pytest.raises(ex.ImagePathError):
         ex.safe_image_path("big.png", str(media))
+
+
+def test_wrapped_ocr_urls_rejoined():
+    assert ex.join_wrapped_urls("Update now: https://sbi.bank.in-\nkyc-update.example/yono and") == \
+        "Update now: https://sbi.bank.in-kyc-update.example/yono and"
+    assert ex.join_wrapped_urls("visit www.hdfc-\npoints.example now") == "visit www.hdfc-points.example now"
+    assert ex.join_wrapped_urls("Dear customer.\nYour account") == "Dear customer.\nYour account"
+
+
+def test_d1_fixture_image(registry):
+    out = ex.extract("", registry, image_path="d1_sbi_kyc_sms.png", media_dir="/repo/tests/fixtures/images")
+    assert any("in-kyc-update.example" in u for u in out["urls"]), out
+    assert "AD-SBIUPD-S" in out["sender_ids"] and "State Bank of India" in out["brands"]
+
+
+def test_d2_fixture_qr(registry):
+    out = ex.extract("", registry, image_path="d2_refund_qr.png", media_dir="/repo/tests/fixtures/images")
+    assert out["upi_uris"] and "am=1499" in out["upi_uris"][0]

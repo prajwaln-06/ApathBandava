@@ -60,5 +60,10 @@ def decide(findings: list[dict[str, Any]], config: dict[str, Any]) -> dict[str, 
         ((code, w, ev) for code, (w, ev) in best.items() if w > 0 or code in HARD),
         key=lambda t: (t[0] not in HARD, -t[1]),
     )
-    reasons = [ev if ev else code for code, _, ev in ranked][:5]
+    reasons: list[str] = []
+    for code, _, ev in ranked:
+        text = ev or code
+        if text not in reasons:
+            reasons.append(text)
+    reasons = reasons[:5]
     return {"verdict": verdict, "score": max(score, 0), "hard_signals": hard, "reasons": reasons}

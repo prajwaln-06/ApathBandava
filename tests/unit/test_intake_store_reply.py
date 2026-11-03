@@ -135,3 +135,22 @@ def test_build_context(registry, playbooks):
                              "Dear customer, Rs 500 debited from a/c")
     assert c2["sources"] == ["https://canarabank.bank.in/pages/Net-banking"] and c2["helpline"] is None
     assert c2["special_line"] == reply.COLLECT_EXPLANATION and c2["hint"] and c2["language"] == "en"
+
+
+def test_defang_and_context_links():
+    c = ctx(reasons=["sbi.bank.in-kyc-update.example is not an official SBI domain", "pay refund.desk7@ybl"])
+    out = reply.finalize("🚫 SCAM\nhttps://sbi.bank.in-kyc-update.example/yono is fake; UPI refund.desk7@ybl. "
+                         "Official: https://sbi.co.in/x, cybercrime.gov.in", c)
+    assert not out["used_fallback"], out
+    assert "hxxps://sbi[.]bank[.]in-kyc-update[.]example/yono" in out["reply"]
+    assert "refund.desk7@ybl" in out["reply"] and "https://sbi.co.in/x" in out["reply"] and "cybercrime.gov.in" in out["reply"]
+    assert reply.validate_reply("🚫 SCAM see other-new-site.example", c) == ["url:other-new-site.example"]
+    fb = reply.fallback_reply(c)
+    assert "sbi[.]bank[.]in-kyc-update[.]example" in fb
+
+
+def test_defang_keeps_upi_ids_and_www_sources():
+    c = ctx(sources=["https://www.business-standard.com/x"], reasons=["pay lic.maturity.desk@ybl"])
+    assert reply.defang("pay lic.maturity.desk@ybl", c) == "pay lic.maturity.desk@ybl"
+    assert reply.defang("see https://www.business-standard.com/x", c) == "see https://www.business-standard.com/x"
+    assert reply.defang("see https://www.evil.example/x", c) == "see hxxps://www[.]evil[.]example/x"

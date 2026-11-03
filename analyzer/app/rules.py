@@ -14,7 +14,7 @@ from .playbooks import Playbooks
 from .registry import Registry, is_mobile, normalize_phone
 from .reputation import ReputationService
 from .sandbox_client import SandboxClient
-from .url_static import analyze
+from .url_static import analyze, host_of
 
 MAX_URLS = 3
 STATIC_EVIDENCE = {
@@ -88,8 +88,10 @@ async def baseline(ext: dict[str, Any], text: str, registry: Registry, reputatio
     if ent:
         mism = {c["field"]: c["value"] for c in match["checks"] if c["status"] == "mismatch"}
         if "url" in mism:
-            out.add("REGISTRY_DOMAIN_MISMATCH", f"{mism['url']} is not an official {ent['name']} domain "
-                    f"(official: {', '.join(ent['domains'][:2]) or 'see registry'})")
+            sender_note = (f"; SMS header {mism['sender_id']} is not a registered {ent['name']} sender"
+                           if "sender_id" in mism else "")
+            out.add("REGISTRY_DOMAIN_MISMATCH", f"{host_of(mism['url'])} is not an official {ent['name']} domain "
+                    f"(official: {', '.join(ent['domains'][:2]) or 'see registry'}){sender_note}")
         if "sender_id" in mism:
             out.add("SENDER_ID_MISMATCH", f"SMS header {mism['sender_id']} is not a registered {ent['name']} header")
         mobile_mismatch = [c["value"] for c in match["checks"]
