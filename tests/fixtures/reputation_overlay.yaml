@@ -1,0 +1,66 @@
+# Offline reputation for reserved test domains only (.example/.test/.invalid). Used by eval/demo.
+# The analyzer ignores any entry that is not a reserved TLD, so this can never whitelist a real site.
+cashback-claim.example:
+  domain_age_days: 15
+  first_cert_days: 15
+fresh-offers-portal.example:
+  domain_age_days: 5
+  first_cert_days: 4
+hdfc-points-redeem.example:
+  domain_age_days: 5
+  feeds:
+    gsb: hit
+  first_cert_days: 5
+hdfc-rewardz.example:
+  domain_age_days: 2
+  first_cert_days: 2
+hdfc-verify-acct.example:
+  domain_age_days: 4
+  first_cert_days: 4
+in-kyc-update.example:
+  domain_age_days: 3
+  first_cert_days: 3
+indiapost-parcel-fee.example:
+  domain_age_days: 8
+  first_cert_days: 8
+indiapost-redelivery.example:
+  domain_age_days: 6
+  first_cert_days: 5
+itr-refund-claim.example:
+  domain_age_days: 4
+  feeds:
+    phishtank: hit
+  first_cert_days: 4
+kotak-rekyc-portal.example:
+  domain_age_days: 3
+  first_cert_days: 3
+kyc-card.example:
+  domain_age_days: 6
+  first_cert_days: 6
+pnbonline-verify.example:
+  domain_age_days: 7
+  first_cert_days: 7
+quickloan-now.example:
+  domain_age_days: 12
+  first_cert_days: 11
+sbi-kyc-online.example:
+  domain_age_days: 2
+  first_cert_days: 2
+sbi-kyc-renew.example:
+  domain_age_days: 2
+  first_cert_days: 1
+sbi-yono-kyc.example:
+  domain_age_days: 3
+  first_cert_days: 2
+secure-login.example:
+  domain_age_days: 5
+  first_cert_days: 5
+update-details.example:
+  domain_age_days: 9
+  first_cert_days: 8
+vip-trading-club.example:
+  domain_age_days: 20
+  first_cert_days: 19
+yono-pan-update.example:
+  domain_age_days: 3
+  first_cert_days: 3
