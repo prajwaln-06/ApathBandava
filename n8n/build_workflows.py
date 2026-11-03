@@ -55,8 +55,8 @@ AGENT_PROMPTS = {
     ),
     "link": PREAMBLE + (
         "\n\nYour job (Link agent): call url_static and url_reputation for every URL in ONE turn (parallel tool calls). "
-        "Call url_detonate only if there "
-        "is no hard signal yet and at least one medium signal or an unknown brand claim. For upi:// URIs call upi_parse. "
+        "Call url_detonate only if no brand "
+        "is claimed and url_static/url_reputation returned no flags at all (the link is still unclear). For upi:// URIs call upi_parse. "
         "Report the tool flags as signals (SHORTENER, RISKY_TLD, IP_HOST, AT_IN_URL, PUNYCODE, "
         "HOMOGLYPH_OR_BRAND_IN_SUBDOMAIN, LOOKALIKE_DOMAIN, THREAT_FEED_HIT, DOMAIN_AGE_LT_30D, CERT_AGE_LT_30D, "
         "PAGE_ASKS_PIN_OTP_CARD, APK_DOWNLOAD); do not judge beyond them. If upi_parse returns intent \"pay\" while the "
@@ -64,8 +64,9 @@ AGENT_PROMPTS = {
         "return status ok with no signals."
     ),
     "impersonation": PREAMBLE + (
-        "\n\nYour job (Impersonation agent): call registry_match with the claimed brands, URLs, sender IDs, phones and "
-        "UPI IDs, then registry_policy with the entity id and the message text. Emit REGISTRY_DOMAIN_MISMATCH, "
+        "\n\nYour job (Impersonation agent): if a brand is claimed, call registry_match (claimed brands, URLs, sender "
+        "IDs, phones, UPI IDs) AND registry_policy (claimed brand name + message text) in the SAME turn as parallel "
+        "tool calls. Emit REGISTRY_DOMAIN_MISMATCH, "
         "SENDER_ID_MISMATCH, PHONE_NOT_OFFICIAL, UPI_HANDLE_NOT_OFFICIAL, or POLICY_VIOLATION (with source_url and the "
         "quote as evidence). Only the tool results count as evidence. No brand claimed -> status \"ok\", no signals."
     ),
@@ -406,8 +407,8 @@ def agents_flow() -> Flow:
                       "={{ JSON.stringify({ uri: $fromAI('uri', 'one upi:// URI exactly as extracted', 'string') }) }}", 5000),
         "registry_match": ("/registry/match", "Compare claimed brands, URLs, SMS sender IDs, phones and UPI IDs with the Official Channels Registry. Pass each list as comma-separated text (empty string if none).",
                            "={{ JSON.stringify({ brands: String($fromAI('brands', 'comma-separated claimed brand names, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), urls: String($fromAI('urls', 'comma-separated URLs, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), sender_ids: String($fromAI('sender_ids', 'comma-separated SMS sender IDs like VM-SBIBNK-S, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), phones: String($fromAI('phones', 'comma-separated phone numbers, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), upi_ids: String($fromAI('upi_ids', 'comma-separated UPI IDs, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
-        "registry_policy": ("/registry/policy", "Check the message against the institution's published 'we never do this' policies. Needs the entity id from registry_match.",
-                            "={{ JSON.stringify({ entity_id: $fromAI('entity_id', 'entity id from registry_match', 'number'), text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
+        "registry_policy": ("/registry/policy", "Check the message against the institution's published 'we never do this' policies. Pass the claimed brand name as entity.",
+                            "={{ JSON.stringify({ entity: $fromAI('entity', 'the claimed brand / institution name, e.g. SBI or LIC', 'string'), text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
         "playbooks_search": ("/playbooks/search", "Search the scam playbook library with the message text. Returns matches with scores.",
                              "={{ JSON.stringify({ text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
     }
@@ -424,8 +425,10 @@ def agents_flow() -> Flow:
         model = f.add(chat_model(f"{title} model", (420, y + 200)))
         f.link(model, ag, kind="ai_languageModel")
         parser = f.add(node(f"{title} output parser", "@n8n/n8n-nodes-langchain.outputParserStructured", 1.3,
-                            {"schemaType": "manual", "inputSchema": schema}, (600, y + 200)))
+                            {"schemaType": "manual", "inputSchema": schema, "autoFix": True}, (600, y + 200)))
         f.link(parser, ag, kind="ai_outputParser")
+        fixer = f.add(chat_model(f"{title} parser auto-fix model", (600, y + 330)))  # used only when parsing fails
+        f.link(fixer, parser, kind="ai_languageModel")
         for j, tname in enumerate(TOOL_ALLOWLIST[agent]):
             path, desc, body, to = tools[tname]
             t = f.add(tool(f"{tname} ({agent})", (760 + j * 140, y + 200), path, desc, body, to))

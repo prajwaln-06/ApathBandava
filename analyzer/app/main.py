@@ -66,7 +66,8 @@ class MatchIn(BaseModel):
 
 
 class PolicyIn(BaseModel):
-    entity_id: int
+    entity_id: int | None = None
+    entity: str | None = Field(None, max_length=200)  # additive: brand name, lets agents call match + policy in parallel
     text: str = Field("", max_length=MAX_TEXT)
 
 
@@ -193,7 +194,13 @@ def create_app(deps: Deps | None = None) -> FastAPI:
 
     @app.post("/registry/policy")
     async def registry_policy_ep(body: PolicyIn) -> dict[str, Any]:
-        return deps.registry.policy(body.entity_id, body.text)
+        entity_id = body.entity_id
+        if not entity_id and body.entity:
+            ent = deps.registry.by_name(body.entity)
+            entity_id = ent["id"] if ent else None
+        if not entity_id:
+            return {"violations": []}
+        return deps.registry.policy(entity_id, body.text)
 
     @app.post("/playbooks/search")
     async def playbooks_search_ep(body: TextIn) -> dict[str, Any]:

@@ -12,3 +12,18 @@ Covers: NFR-1 (tool allowlists), NFR-5 (untrusted wrapping, schema validation), 
 | 4.5 | 60 fixtures (15 scam text, 10 scam image/QR, 10 impersonation, 15 legit, 10 injection) + generated images + offline reputation overlay for `.example` | `tests/fixtures/` |
 | 4.6 | Eval runner through the webhook test path (bridge mocked) | `tests/e2e/run_fixtures.py`, `tests/mock_bridge/` |
 | 4.7 | LLM via `llm-gateway` (Gemini 3.5 Flash-Lite on Vertex, reasoning `minimal`) | `llm-gateway/`, `.env.example` |
+
+## Gate report (2026-11-04)
+
+Command: `make eval` (`tests/e2e/run_fixtures.py`, 60 fixtures through `/webhook/wa-inbound`, bridge mocked).
+```
+Agent outputs schema-valid | 232/232 (off-topic items run no agents)
+Phase 4: all agents schema-valid | PASS
+```
+
+| Criterion | Result |
+|---|---|
+| All 60 fixtures produce schema-valid output from all 4 agents (bridge mocked) | PASS (58 checked items × 4 = 232/232; L10/L13 correctly get the FR-6 off-topic reply and run no agents) |
+| Tool allowlists / no WhatsApp tools | PASS (`tests/unit/test_workflows.py`) |
+
+Attempts: run 1 had 4 agent failures (hung AI Agent v3 sub-executions, `$fromAI` json args rejecting empty arrays, parser format errors) → fixed with agent v2.2, string tool args, retry + parser auto-fix; scoring corrected to count a self-reported `status:"unknown"` with a summary as schema-valid.

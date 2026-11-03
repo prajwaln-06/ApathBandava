@@ -164,3 +164,10 @@ async def test_admin(client, deps, monkeypatch):
 
     monkeypatch.setattr(admin_mod.httpx, "AsyncClient", Client)
     assert (await admin_mod.bridge_health("http://x"))["logged_in"] is True
+
+
+async def test_policy_by_entity_name(client):
+    r = (await client.post("/registry/policy", json={"entity": "SBI", "text": "share your OTP now"})).json()
+    assert r["violations"]
+    assert (await client.post("/registry/policy", json={"entity": "Nope Bank", "text": "share otp"})).json() == {"violations": []}
+    assert (await client.post("/registry/policy", json={"text": "share otp"})).json() == {"violations": []}

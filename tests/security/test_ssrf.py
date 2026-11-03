@@ -60,7 +60,14 @@ def test_redirect_into_metadata_is_blocked(sandbox):
     r = httpx.post(f"{SANDBOX}/detonate", json={"url": url, "mode": "expand"}, timeout=40)
     if r.status_code == 200 and r.json().get("error"):
         pytest.skip("no internet egress from sandbox")
-    assert r.status_code == 422 or "169.254.169.254" not in str(r.json().get("final_url"))
+    from urllib.parse import urlsplit
+
+    if r.status_code == 200:
+        body = r.json()
+        hosts = [urlsplit(u).hostname for u in [body.get("final_url") or "", *body.get("redirects", [])]]
+        assert "169.254.169.254" not in hosts, body
+    else:
+        assert r.status_code == 422, r.text
 
 
 def test_analyzer_proxies_and_degrades(sandbox):

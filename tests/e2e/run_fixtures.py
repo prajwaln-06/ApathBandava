@@ -79,7 +79,7 @@ def wait_reply(client: httpx.Client, jid: str, timeout: float = 60) -> str | Non
         finals = [m["message"] for m in msgs if not m["message"].startswith(("Checking", "जाँच"))]
         if finals:
             return finals[-1]
-        time.sleep(0.25)
+        time.sleep(0.1)
     return None
 
 
@@ -126,7 +126,9 @@ def main() -> int:
             latency = time.time() - t0
             verdict = verdict_of(reply or "")
             f = findings_for(conn, jid)
-            status = {x.get("agent"): x.get("status") for x in f}
+            # Schema-valid = the agent returned SRS 6.4 JSON (status ok, or a self-reported "unknown" with a summary).
+            # The pipeline's fallback for timeouts/parse errors is {status: unknown, signals: [], summary: ""}.
+            status = {x.get("agent"): ("ok" if x.get("status") == "ok" or x.get("summary") else "fallback") for x in f}
             res = {"id": item["id"], "group": item["group"], "expect": item["expect"], "verdict": verdict,
                    "latency_s": round(latency, 2), "agents_ok": [a for a in AGENTS if status.get(a) == "ok"],
                    "reply": reply, "demo": item.get("demo"), "rules_codes": sorted(

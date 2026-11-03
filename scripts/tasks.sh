@@ -41,7 +41,8 @@ case "${1:-help}" in
     $DC --profile test run --rm tests pytest -q security -p no:cacheprovider ;;
   eval)
     $DC --profile test up -d --build mock-bridge
-    $DC --profile test run --rm tests python /repo/tests/e2e/run_fixtures.py --report /repo/reports/eval.md --gate ;;
+    $DC --profile test run --rm tests python /repo/tests/e2e/run_fixtures.py --report /repo/reports/eval.md --gate
+    $DC --profile test run --rm tests python /repo/tests/e2e/cache_latency.py ;;
   demo)
     $DC --profile test up -d --build mock-bridge
     $DC --profile test run --rm tests python /repo/tests/e2e/run_fixtures.py --only D1,D2,D3,D4,D5 --report /repo/reports/demo.md
