@@ -192,6 +192,7 @@ services:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
     environment:
+      COVERAGE_FILE: /tmp/.coverage  # bind-mounted /repo may not be writable by the container user (CI)
       TEST_DATABASE_URL: postgresql://${POSTGRES_USER:-scamsaathi}:${POSTGRES_PASSWORD}@postgres:5432/scamsaathi_test
       TEST_DATABASE_ADMIN_URL: postgresql://${POSTGRES_USER:-scamsaathi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-scamsaathi}
       TEST_REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/15
