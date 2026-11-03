@@ -1,0 +1,32 @@
+# Verdict weights (SRS 6.5). Tuned against tests/fixtures via `make eval`.
+# Codes from the SRS table keep their SRS weight; the rest are documented in docs/decisions.md.
+thresholds:
+  scam: 60        # score >= 60 -> SCAM
+  suspicious: 25  # 25..59 -> SUSPICIOUS; below -> NO_RED_FLAGS
+weights:
+  POLICY_VIOLATION: 40
+  REGISTRY_DOMAIN_MISMATCH: 35
+  PAGE_ASKS_PIN_OTP_CARD: 35
+  HOMOGLYPH_OR_BRAND_IN_SUBDOMAIN: 30
+  DOMAIN_AGE_LT_30D: 25
+  SENDER_ID_MISMATCH: 20
+  APK_DOWNLOAD: 25
+  PLAYBOOK_MATCH: 20
+  URGENCY_LANGUAGE: 10
+  SHORTENER: 5
+  REGISTRY_FULL_MATCH: -30
+  # not in the SRS table
+  UPI_COLLECT_REQUEST: 40
+  LOOKALIKE_DOMAIN: 30
+  REMOTE_ACCESS_REQUEST: 30
+  CREDENTIAL_REQUEST: 25
+  PERSONAL_UPI_PAYMENT: 20
+  UPI_HANDLE_NOT_OFFICIAL: 20
+  PHONE_NOT_OFFICIAL: 15
+  IP_HOST: 20
+  AT_IN_URL: 20
+  REWARD_LURE: 15
+  AUTHORITY_CLAIM: 5
+  RISKY_TLD: 10
+  PUNYCODE: 15
+  CERT_AGE_LT_30D: 10
