@@ -1,0 +1,33 @@
+# IndusInd Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: IndusInd Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- IndusInd Bank
+- IndusInd
+- इंडसइंड
+domains:
+- indusind.bank.in
+legacy_domains:
+- indusind.com
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '1800220061'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.indusind.bank.in/content/cybersecurity/en/index.html
+- https://indusnet.indusind.com/corp/web/L001/corporate/jsp/common/security_txt.htm
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: IndusInd never asks for PIN, OTP, CVV or card expiry date.
+  quote: 'THINGS WE WILL NEVER ASK FOR: PIN, OTP, CVV, Card Expiry Date'
+  source_url: https://www.indusind.bank.in/content/cybersecurity/en/index.html

@@ -1,0 +1,24 @@
+code: INSURANCE_FEE
+name: Insurance maturity / bonus release fee
+description: Caller or message claims to be from LIC/IRDAI/insurer and asks you to pay a fee, GST or charges to release maturity,
+  bonus or a lapsed policy amount.
+indicators:
+- maturity
+- policy
+- bonus
+- lic
+- irdai
+- release
+- processing fee
+- gst
+- charges
+- lapsed policy
+- claim amount
+- insurance
+- pay fee
+- policy amount
+example: 'LIC: your policy maturity amount Rs 2,45,000 is pending. Pay processing fee Rs 4,999 to release today.'
+advice: Insurers never ask for a fee to release maturity or bonus. Check your policy only on the insurer's official website
+  or branch.
+advice_hi: बीमा कंपनी मैच्योरिटी या बोनस जारी करने के लिए कभी फीस नहीं मांगती। सिर्फ़ आधिकारिक वेबसाइट या ब्रांच से पुष्टि
+  करें।

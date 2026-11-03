@@ -1,0 +1,40 @@
+# HDFC Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: HDFC Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- HDFC Bank
+- HDFC
+- एचडीएफसी बैंक
+domains:
+- hdfc.bank.in
+legacy_domains:
+- hdfcbank.com
+- hdfcbk.io
+sms_headers:
+- HDFCBK
+- HDFCBN
+call_prefixes:
+- '1600'
+support_numbers:
+- '18002026161'
+- '18602676161'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.hdfc.bank.in/blogs/banking-services/how-to-verify-hdfc-bank-official-number-series
+- https://www.moneylife.in/article/fraud-alert-stay-away-from-dangerous-links-in-bank-sms/70038.html
+- https://trak.in/stories/attention-hdfc-customers-how-to-identify-fake-hdfc-smses-mails-keep-your-money-safe/
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: HDFC Bank never asks for OTP, MPIN, passwords, card number, ATM PIN or CVV.
+  quote: would never ask for PAN details, OTP, UPI, VPA/MPIN, Customer ID & Password, Card No, ATM PIN & CVV
+  source_url: https://www.moneylife.in/article/fraud-alert-stay-away-from-dangerous-links-in-bank-sms/70038.html
+review_notes: Policy quote is from press coverage of the bank's statement (secondary). hdfcbk.io link domain was announced
+  by the bank but questioned on a forum. Helplines from a 2023 bank post quoted in search results.

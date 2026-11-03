@@ -1,0 +1,26 @@
+# HDFC Life - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: HDFC Life
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- HDFC Life
+- HDFC Life Insurance
+- एचडीएफसी लाइफ
+domains:
+- hdfclife.com
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.hdfclife.com/irda-public-notice-on-spurious-calls
+- https://zeebiz.com/personal-finance/news-have-insurance-policy-beware-of-fraud-do-not-forget-to-take-this-action-64606
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does: []

@@ -1,0 +1,21 @@
+code: LOAN_APP
+name: Instant loan app / pre-approved loan
+description: Offers an instant or pre-approved loan with no documents via an APK or link, then demands processing fees or
+  harasses with contacts.
+indicators:
+- instant loan
+- pre-approved
+- pre approved
+- no documents
+- no cibil
+- loan approved
+- processing fee
+- apk
+- download app
+- low interest
+- loan in 5 minutes
+- disbursal
+example: 'Congratulations! Pre-approved loan of Rs 5,00,000. No documents. Download app: loan-fast.example/app.apk and pay
+  processing fee.'
+advice: Take loans only from RBI-regulated lenders' official apps. Never pay an upfront fee or install an APK from a link.
+advice_hi: सिर्फ़ RBI-नियंत्रित संस्थाओं के आधिकारिक ऐप से लोन लें। लिंक से APK इंस्टॉल न करें, पहले फीस न दें।

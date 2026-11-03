@@ -1,0 +1,20 @@
+code: SIM_SWAP
+name: SIM swap / eSIM upgrade
+description: Message claims your SIM will be blocked or offers a 4G/5G/eSIM upgrade and asks you to reply with a code or share
+  the SIM number, letting the scammer take over your number.
+indicators:
+- sim
+- esim
+- 5g upgrade
+- 4g upgrade
+- sim will be blocked
+- sim card
+- reply with
+- send sms
+- sim number
+- kyc of sim
+- telecom
+- trai
+example: Your SIM will be blocked in 24 hours. For 5G eSIM upgrade reply with the 20 digit number on your SIM.
+advice: Telecom operators never ask you to SMS your SIM number or a code to upgrade. Visit the operator's store.
+advice_hi: टेलीकॉम कंपनियां अपग्रेड के लिए SIM नंबर या कोड SMS करने को नहीं कहतीं। ऑपरेटर के स्टोर पर जाएं।

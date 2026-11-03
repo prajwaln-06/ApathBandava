@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 # Task runner behind the Makefile. Usage: sh scripts/tasks.sh <target>
 set -eu
+export MSYS_NO_PATHCONV=1  # Git Bash on Windows: do not rewrite container paths
 cd "$(dirname "$0")/.."
 DC="docker compose"
 PY="$(command -v python3 || command -v python)"
@@ -27,6 +28,7 @@ case "${1:-help}" in
   logs) $DC logs -f --tail=100 ;;
   qr) echo "Open http://127.0.0.1:8080/qr in a browser (or watch the logs below) and scan it from WhatsApp > Linked devices"; $DC logs -f wa-bridge ;;
   check-secrets) sh scripts/check-secrets.sh ;;
+  validate-seeds) "$PY" scripts/validate_seeds.py ;;
   test)
     sh scripts/check-secrets.sh
     $DC --profile test build tests

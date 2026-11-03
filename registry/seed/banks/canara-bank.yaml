@@ -1,0 +1,29 @@
+# Canara Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Canara Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- Canara Bank
+- केनरा बैंक
+domains:
+- canarabank.bank.in
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://canarabank.bank.in/pages/Net-banking
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: Canara Bank never asks for OTP, password, PIN or CVV.
+  quote: Bank never asks for OTP,Password,PIN or CVV number
+  source_url: https://canarabank.bank.in/pages/Net-banking

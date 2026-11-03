@@ -1,0 +1,22 @@
+code: JOB_TASK
+name: Part-time job / task scam
+description: Offers easy money for liking videos, rating hotels or 'tasks', then asks you to deposit money to unlock bigger
+  tasks or withdraw earnings.
+indicators:
+- part time job
+- work from home
+- daily income
+- like videos
+- youtube
+- rating
+- task
+- telegram
+- earn
+- per day
+- prepaid task
+- commission
+- joining fee
+- hr manager
+example: Part time job! Earn Rs 3000-8000 per day by liking YouTube videos. Contact HR on Telegram.
+advice: Real jobs never ask you to pay to work or to 'unlock' tasks. Stop and don't send any deposit.
+advice_hi: असली नौकरी कभी काम करने या टास्क खोलने के लिए पैसे नहीं मांगती। कोई जमा राशि न भेजें।

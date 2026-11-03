@@ -1,0 +1,37 @@
+# State Bank of India - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: State Bank of India
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- SBI
+- State Bank of India
+- State Bank
+- YONO
+- भारतीय स्टेट बैंक
+- एसबीआई
+domains:
+- sbi.bank.in
+legacy_domains:
+- sbi.co.in
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://sbi.co.in/web/personal-banking/cyber-security
+- https://sbi.bank.in/web/yono/phishing-attacks-how-to-spot-scams-and-protect-yourself
+- https://www.angelone.in/news/personal-finance/hdfc-icici-sbi-and-other-banks-migrate-their-domain-structure-to-bank-in
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: SBI never asks for card details, CVV, OTP or PIN.
+  quote: SBI will never ask for your bank account details, Debit / Credit Card details, CVV number etc.
+  source_url: https://sbi.co.in/web/personal-banking/cyber-security
+review_notes: SMS headers and helpline not verified in this session; add from the sbi.bank.in contact page.

@@ -1,0 +1,33 @@
+# Axis Max Life Insurance - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Axis Max Life Insurance
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- Axis Max Life
+- Max Life
+- Max Life Insurance
+domains:
+- axismaxlife.com
+legacy_domains:
+- maxlifeinsurance.com
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18601205577'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.axismaxlife.com/customer-servicing/protect-your-policy
+- https://www.axismaxlife.com/static-page/assets/homepage/12302778_Fraud%20Awareness%20Mailer_07%20March%2025.pdf
+- https://www.axismaxlife.com/disclaimer-institutional
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does:
+- rule_code: NEVER_ASKS_PERSONAL_UPI_PAYMENT
+  rule_text: Axis Max Life collects premium only in its designated account.
+  quote: Axis Max Life Insurance does not collect Premium in any other account
+  source_url: https://www.axismaxlife.com/static-page/assets/homepage/12302778_Fraud%20Awareness%20Mailer_07%20March%2025.pdf

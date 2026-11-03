@@ -1,0 +1,21 @@
+code: ELECTRICITY_CUTOFF
+name: Electricity disconnection threat
+description: Claims your electricity will be disconnected tonight because the last bill was not updated, and asks you to call
+  an 'officer' or install an app.
+indicators:
+- electricity
+- power
+- disconnected
+- tonight
+- last month bill
+- bill not updated
+- electricity office
+- officer
+- bijli
+- call immediately
+- 9.30 pm
+- light will be cut
+example: Dear Consumer your electricity power will be disconnected tonight at 9.30 pm because your previous month bill was
+  not updated. Call officer 98XXXXXX00
+advice: Electricity boards don't threaten disconnection by SMS from mobile numbers. Pay only via the official board app/website.
+advice_hi: बिजली विभाग मोबाइल नंबर से SMS भेजकर कनेक्शन काटने की धमकी नहीं देता। सिर्फ़ आधिकारिक ऐप/वेबसाइट से भुगतान करें।

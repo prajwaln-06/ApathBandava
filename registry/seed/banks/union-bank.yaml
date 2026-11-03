@@ -1,0 +1,36 @@
+# Union Bank of India - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Union Bank of India
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- Union Bank of India
+- Union Bank
+- यूनियन बैंक
+domains:
+- unionbankofindia.bank.in
+legacy_domains:
+- unionbankonline.co.in
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.unionbankofindia.bank.in/en/details/online-security
+- https://www.unionbankonline.co.in/PhishingAlertRet.htm
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: Union Bank never e-mails for account details, PIN or password.
+  quote: Union Bank will never send you e-mails asking for confidential details of your account, PIN, or password.
+  source_url: https://www.unionbankonline.co.in/PhishingAlertRet.htm
+- rule_code: NEVER_SENDS_KYC_LINK
+  rule_text: Union Bank never sends urgent requests to update or confirm sensitive data.
+  quote: The Bank will never send urgent or time-sensitive emails asking you to provide, update or confirm sensitive data.
+  source_url: https://www.unionbankofindia.bank.in/en/details/online-security

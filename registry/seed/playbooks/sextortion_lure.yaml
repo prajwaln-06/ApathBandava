@@ -1,0 +1,20 @@
+code: SEXTORTION_LURE
+name: Sextortion / video call lure
+description: Unknown person starts a friendly or romantic chat, pushes a video call, then threatens to leak a recorded clip
+  unless paid.
+indicators:
+- video call
+- lonely
+- friendship
+- dating
+- private video
+- recorded
+- viral
+- leak
+- pay or
+- send money
+- youtube upload
+- police complaint against you
+example: Hi dear, I am lonely, let's do video call... I recorded your video, pay Rs 20000 or I will make it viral.
+advice: Don't pay — paying brings more demands. Block, keep evidence, and report at cybercrime.gov.in or 1930.
+advice_hi: पैसे न दें — इससे मांगें बढ़ती हैं। ब्लॉक करें, सबूत रखें और cybercrime.gov.in या 1930 पर शिकायत करें।

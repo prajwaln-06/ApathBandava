@@ -1,0 +1,21 @@
+code: COURIER_FEE
+name: Courier / customs parcel fee
+description: Message says a parcel is held at customs or the courier needs a small re-delivery/address fee, paid through a
+  link.
+indicators:
+- parcel
+- courier
+- customs
+- delivery failed
+- address incomplete
+- re-delivery
+- fedex
+- india post
+- dhl
+- held
+- pay fee
+- small fee
+- tracking
+example: 'India Post: your parcel is held due to incomplete address. Pay Rs 25 re-delivery fee within 12 hours: indiapost-track.example'
+advice: Couriers and India Post do not ask for fees through SMS links. Check tracking only on the official website.
+advice_hi: कूरियर या इंडिया पोस्ट SMS लिंक से फीस नहीं मांगते। ट्रैकिंग सिर्फ़ आधिकारिक वेबसाइट पर देखें।

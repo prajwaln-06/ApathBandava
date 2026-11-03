@@ -1,0 +1,36 @@
+# Axis Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Axis Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- Axis Bank
+- एक्सिस बैंक
+domains:
+- axis.bank.in
+legacy_domains:
+- axisbank.com
+sms_headers:
+- AXISBK
+- AXISMR
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.axis.bank.in/fraud-awareness/types-of-scams/vishing-scam-preteding-to-be-axis-bank-employees
+- https://application.axis.bank.in/WebForms/axis-support/Blogs/identify_genuine.aspx
+- https://nsearchives.nseindia.com/corporate/AXISBANK1_31102025094744_SEIntimationWebsiteDomain31102025Signed.pdf
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: Axis Bank never seeks credentials such as CVV, OTP or UPI PIN through any communication.
+  quote: Axis Bank never seeks any personal or financial credential details such as email ID, phone number, Credit Card details
+    (CVV, expiry date, number) OTP, UPI PIN, bank account numbers, dates of birth, PAN or Aadhaar card details, etc. through
+    any form of communication.
+  source_url: https://www.axis.bank.in/fraud-awareness/types-of-scams/vishing-scam-preteding-to-be-axis-bank-employees

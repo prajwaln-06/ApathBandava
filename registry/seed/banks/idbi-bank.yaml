@@ -1,0 +1,31 @@
+# IDBI Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: IDBI Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- IDBI Bank
+- IDBI
+- आईडीबीआई
+domains:
+- idbi.bank.in
+legacy_domains:
+- idbibank.in
+- idbi.com
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.idbi.bank.in/phishing.aspx
+- https://www.idbi.bank.in/information-security.aspx
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does: []
+review_notes: Official pages say never share login ID, password, PIN, UPI-PIN or OTP with anyone including bank officials;
+  exact sentence not captured.

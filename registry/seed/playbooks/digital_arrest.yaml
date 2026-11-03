@@ -1,0 +1,23 @@
+code: DIGITAL_ARREST
+name: Digital arrest / fake police or CBI
+description: Caller poses as police, CBI, customs, ED or TRAI, says a parcel or SIM in your name is linked to crime, keeps
+  you on video call and demands money to 'clear' you.
+indicators:
+- digital arrest
+- cbi
+- police
+- arrest warrant
+- money laundering
+- narcotics
+- drugs
+- aadhaar misused
+- video call
+- skype
+- trai
+- case registered
+- verification amount
+- don't tell anyone
+example: This is CBI. A parcel with drugs in your name was seized. You are under digital arrest. Stay on video call and transfer
+  money for verification.
+advice: There is no 'digital arrest' in Indian law. Police never demand money on calls. Hang up and call 1930.
+advice_hi: भारतीय कानून में 'डिजिटल अरेस्ट' नहीं होता। पुलिस कॉल पर पैसे नहीं मांगती। कॉल काटें और 1930 पर कॉल करें।

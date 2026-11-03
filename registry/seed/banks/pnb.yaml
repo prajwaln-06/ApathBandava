@@ -1,0 +1,38 @@
+# Punjab National Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Punjab National Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- Punjab National Bank
+- PNB
+- पंजाब नेशनल बैंक
+domains:
+- pnb.bank.in
+legacy_domains:
+- netpnb.com
+- pnbcard.in
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18001800'
+- '18002021'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://pnbcard.in
+- https://netpnb.com/rakshak-index.html
+- https://indianpsu.com/pnb-alerts-customers-regarding-cyber-frauds-through-apk-files
+- https://www.angelone.in/news/personal-finance/hdfc-icici-sbi-and-other-banks-migrate-their-domain-structure-to-bank-in
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: PNB never asks for card number, expiry, CVV, OTP or password.
+  quote: PNB or its employees never ask for your details such as Card number, card expiry, CVV, OTP or password
+  source_url: https://pnbcard.in
+review_notes: pnb.bank.in comes from press coverage of the migration; confirm.

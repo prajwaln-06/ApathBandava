@@ -1,0 +1,27 @@
+# Bajaj Life Insurance - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Bajaj Life Insurance
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- Bajaj Life
+- Bajaj Allianz Life
+- Bajaj Life Insurance
+domains:
+- bajajlifeinsurance.com
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.bajajlifeinsurance.com/irda-public-notice-on-spurious-calls.html
+- https://www.bajajlifeinsurance.com/content/dam/balic-web/pdf/fraud-awareness-booklet-final.pdf
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does: []
+review_notes: Formerly Bajaj Allianz Life.

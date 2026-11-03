@@ -1,0 +1,32 @@
+# ICICI Prudential Life Insurance - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: ICICI Prudential Life Insurance
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- ICICI Prudential
+- ICICI Pru
+- ICICI Prudential Life
+domains:
+- iciciprulife.com
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18602667766'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://iciciprulife.com/insurance-library/fraud-prevention-tips.html
+- https://www.iciciprulife.com/insurance-claim/protect-your-insurance-policy.html
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does:
+- rule_code: NEVER_ASKS_FEE_FOR_PAYOUT
+  rule_text: Fake callers posing as IRDA/insurer lure customers into additional payments.
+  quote: Do not fall prey to spurious / fake callers or mailers posing to be representatives of IRDA or the Insurance Company.
+    They may lure you to make some additional payment
+  source_url: https://iciciprulife.com/insurance-library/fraud-prevention-tips.html

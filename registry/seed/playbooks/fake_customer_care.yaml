@@ -1,0 +1,20 @@
+code: FAKE_CUSTOMER_CARE
+name: Fake customer care number
+description: A fake helpline found on search/social media or sent by SMS asks you to install a screen-sharing app or share
+  OTP to fix a refund or complaint.
+indicators:
+- customer care
+- helpline
+- toll free
+- anydesk
+- teamviewer
+- quick support
+- screen share
+- refund
+- complaint
+- remote
+- install app
+- executive
+example: For refund call customer care 98XXXXXX11 and install AnyDesk so our executive can help.
+advice: Use helpline numbers only from the official website or app. Never install screen-sharing apps on a caller's request.
+advice_hi: हेल्पलाइन नंबर सिर्फ़ आधिकारिक वेबसाइट या ऐप से लें। कॉल करने वाले के कहने पर स्क्रीन-शेयरिंग ऐप न डालें।

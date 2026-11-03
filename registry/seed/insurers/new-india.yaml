@@ -1,0 +1,28 @@
+# New India Assurance - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: New India Assurance
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- New India Assurance
+- New India Insurance
+- न्यू इंडिया एश्योरेंस
+domains:
+- newindia.co.in
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18002091415'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://m.indiacustomercare.com/new-india-assurance-insurance-company-customer-care-numbers
+- https://www.bankbazaar.com/insurance/new-india-car-insurance-customer-care.html
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does: []
+review_notes: Domain and helpline from third-party listings; confirm on the official site.

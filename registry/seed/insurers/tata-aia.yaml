@@ -1,0 +1,31 @@
+# Tata AIA Life Insurance - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Tata AIA Life Insurance
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- Tata AIA
+- Tata AIA Life
+domains:
+- tataaia.com
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18602669966'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.tataaia.com/insurance-fraud-awareness.html
+- https://www.tataaia.com/customer-service/unsolicited-communication.html
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does:
+- rule_code: NEVER_ASKS_PERSONAL_UPI_PAYMENT
+  rule_text: Do not pay premiums to personal accounts/wallets of people claiming to be agents.
+  quote: avoid paying your premiums through unknown and unprotected websites, payment portals or to bank accounts / Payment
+    Wallets of persons claiming to be Tata AIA Agent or Employee
+  source_url: https://www.tataaia.com/insurance-fraud-awareness.html

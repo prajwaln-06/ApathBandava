@@ -1,0 +1,28 @@
+# SBI Life Insurance - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: SBI Life Insurance
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- SBI Life
+- SBI Life Insurance
+- एसबीआई लाइफ
+domains:
+- sbilife.co.in
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18002679090'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.policybazaar.com/life-insurance/articles/sbi-life-insurance-customer-care-number/
+- https://www.bajajfinserv.in/sbi-life-insurance-customer-care
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does: []
+review_notes: Domain and helpline from third-party listings; confirm on the official site.

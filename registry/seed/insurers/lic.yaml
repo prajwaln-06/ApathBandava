@@ -1,0 +1,40 @@
+# Life Insurance Corporation of India - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Life Insurance Corporation of India
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- LIC
+- LIC of India
+- Life Insurance Corporation
+- एलआईसी
+- भारतीय जीवन बीमा निगम
+domains:
+- licindia.in
+legacy_domains:
+- licindia.com
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers: []
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.business-standard.com/finance/personal-finance/beware-lic-warns-customers-against-fraudulent-calls-fake-claims-125031700233_1.html
+- https://www.indiatvnews.com/business/news-lic-policyholder-beware-lic-warns-against-spurious-phone-calls-fraudsters-564312
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does:
+- rule_code: NEVER_SENDS_KYC_LINK
+  rule_text: LIC never contacts customers for KYC verification via calls, SMS, WhatsApp or e-mail.
+  quote: LIC never contacts customers via calls, SMS, WhatsApp messages, or emails for verification of Know Your Customer
+    (KYC) details
+  source_url: https://www.business-standard.com/finance/personal-finance/beware-lic-warns-customers-against-fraudulent-calls-fake-claims-125031700233_1.html
+- rule_code: NEVER_ASKS_FEE_FOR_PAYOUT
+  rule_text: LIC does not offer bonuses or monetary benefits through third parties.
+  quote: LIC does not offer exaggerated bonuses or monetary benefits through third parties
+  source_url: https://www.business-standard.com/finance/personal-finance/beware-lic-warns-customers-against-fraudulent-calls-fake-claims-125031700233_1.html
+review_notes: Quotes are from press coverage of LIC's March 2025 advisory (secondary). licindia.com is LIC's e-mail domain
+  (spuriouscalls@licindia.com). Helpline not verified.

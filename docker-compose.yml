@@ -184,6 +184,7 @@ services:
   tests:
     profiles: [test]
     build: { context: ./analyzer, target: test }
+    working_dir: /repo/tests
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -201,6 +202,8 @@ services:
       REGISTRY_DIR: /repo/registry/seed
       MIGRATIONS_DIR: /repo/db/migrations
     volumes:
+      - ./analyzer/app:/app/app:ro
+      - ./analyzer/weights.yaml:/app/weights.yaml:ro
       - ./tests:/repo/tests
       - ./registry:/repo/registry:ro
       - ./db:/repo/db:ro

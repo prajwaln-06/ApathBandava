@@ -1,0 +1,20 @@
+code: REFUND_QR
+name: Refund / prize QR that is really a payment
+description: Scammer sends a QR code or UPI link saying 'scan to receive refund/cashback/prize'. Scanning and entering the
+  UPI PIN sends money out.
+indicators:
+- scan
+- qr
+- qr code
+- refund
+- cashback
+- receive
+- prize
+- scan to receive
+- enter upi pin
+- upi pin
+- reward
+- credited
+example: Your refund of Rs 1499 is ready. Scan this QR and enter UPI PIN to receive the amount.
+advice: You never scan a QR or enter a UPI PIN to RECEIVE money. A QR always pays the other person.
+advice_hi: पैसे पाने के लिए कभी QR स्कैन या UPI PIN डालना नहीं पड़ता। QR हमेशा दूसरे को पैसे भेजता है।

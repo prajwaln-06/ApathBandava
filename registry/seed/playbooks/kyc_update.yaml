@@ -1,0 +1,23 @@
+code: KYC_UPDATE
+name: Fake KYC update / account block
+description: Message claims your KYC, PAN or Aadhaar link has expired and your account or YONO/net banking will be blocked
+  unless you update via a link or app.
+indicators:
+- kyc
+- kyc update
+- kyc expired
+- update your kyc
+- account will be blocked
+- account blocked
+- pan card
+- aadhaar
+- click the link
+- net banking
+- yono
+- suspended
+- today
+- kyc pending
+- re-kyc
+example: 'Dear Customer your SBI YONO KYC has expired. Your account will be blocked today. Update PAN now: sbi-kyc.example'
+advice: Banks never ask you to update KYC through an SMS link. Visit your branch or the official .bank.in website/app yourself.
+advice_hi: बैंक कभी SMS लिंक से KYC अपडेट नहीं कराते। ब्रांच या आधिकारिक .bank.in वेबसाइट/ऐप पर खुद जाएं।

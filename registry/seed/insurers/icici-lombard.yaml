@@ -1,0 +1,27 @@
+# ICICI Lombard - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: ICICI Lombard
+kind: insurer
+regulator: IRDAI
+status: needs_review
+last_verified: null
+aliases:
+- ICICI Lombard
+- ICICI Lombard General Insurance
+domains:
+- icicilombard.com
+legacy_domains: []
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18002666'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.bajajfinserv.in/icici-lombard-general-insurance-customer-care
+- https://www.policyx.com/health-insurance/icici-lombard-health-insurance/customer-service.php
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+never_does: []
+review_notes: Domain and helpline from third-party listings; confirm on the official site.

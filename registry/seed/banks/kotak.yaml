@@ -1,0 +1,36 @@
+# Kotak Mahindra Bank - DRAFT prepared 2026-11-04 by the build agent from the sources listed below.
+# status: needs_review - a human must check every field against the official website before approval.
+# Empty lists mean no verifiable source was found; nothing here is guessed.
+name: Kotak Mahindra Bank
+kind: bank
+regulator: RBI
+status: needs_review
+last_verified: null
+aliases:
+- Kotak Mahindra Bank
+- Kotak
+- Kotak811
+- कोटक
+domains:
+- kotak.bank.in
+- kotak811.bank.in
+legacy_domains:
+- kotak.com
+sms_headers: []
+call_prefixes:
+- '1600'
+support_numbers:
+- '18002090000'
+official_upi_handles: []
+app_packages: []
+sources:
+- https://www.kotak.bank.in/en/safe-banking.html
+- https://www.kotak811.bank.in/fin-india/scam-ka-siren/sharing-bank-details-and-otp
+- https://www.business-standard.com/amp/industry/news/trai-directs-bfsi-use-1600-number-series-2026-125111900941_1.html
+- https://website.rbi.org.in/web/rbi/-/notifications/circular-migration-to-.bank.in-domain
+never_does:
+- rule_code: NEVER_ASKS_OTP_PIN
+  rule_text: Kotak never asks for PIN, CVV, OTP or to authorise transactions over a call.
+  quote: Your bank will never ask for such sensitive information.
+  source_url: https://www.kotak.bank.in/en/safe-banking.html
+review_notes: 18002090000 is the fraud-reporting number on the Safe Banking page.

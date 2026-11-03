@@ -1,0 +1,21 @@
+code: COLLECT_REQUEST
+name: UPI collect request disguised as a payment to you
+description: A 'collect' or 'payment request' appears in your UPI app; the scammer says it is a refund or buyer payment. Approving
+  with your PIN pays them.
+indicators:
+- collect request
+- payment request
+- requested
+- approve
+- decline
+- upi pin
+- request money
+- pay
+- expires in
+- buyer
+- olx
+- refund
+- accept the request
+example: Ramesh has requested Rs 5,000. Pay / Decline. Enter UPI PIN to approve.
+advice: Decline unknown collect requests. Entering your UPI PIN on a request sends money out of your account.
+advice_hi: अनजान कलेक्ट रिक्वेस्ट को Decline करें। रिक्वेस्ट पर UPI PIN डालने से पैसे आपके खाते से जाते हैं।

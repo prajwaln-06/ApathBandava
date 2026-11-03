@@ -1,0 +1,19 @@
+code: OTP_REQUEST
+name: OTP / PIN request
+description: Someone posing as bank, delivery, or a friend asks you to share an OTP, UPI PIN, CVV or card number 'by mistake
+  sent to you' or 'for verification'.
+indicators:
+- otp
+- share otp
+- send otp
+- upi pin
+- cvv
+- card number
+- verification
+- sent by mistake
+- tell me the code
+- 6 digit code
+- pin
+example: I sent an OTP to your number by mistake, please share the 6 digit code.
+advice: Never share an OTP, PIN or CVV with anyone — no bank, company or friend needs it.
+advice_hi: OTP, PIN या CVV कभी किसी को न बताएं — किसी बैंक, कंपनी या दोस्त को इसकी ज़रूरत नहीं होती।
