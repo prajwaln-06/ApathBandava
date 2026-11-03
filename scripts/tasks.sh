@@ -32,18 +32,27 @@ case "${1:-help}" in
   test)
     sh scripts/check-secrets.sh
     $DC --profile test build tests
-    $DC --profile test run --rm tests pytest -q \
+    $DC --profile test run --rm tests pytest -q unit \
       --cov=app --cov-config=/app/.coveragerc --cov-report=term-missing:skip-covered --cov-fail-under=90
     $DC --profile test run --rm tests sh -c \
       "pytest -q --cov=app --cov-branch --cov-config=/app/.coveragerc /repo/tests/unit/test_verdict.py >/dev/null && coverage report --include='*/verdict.py' --fail-under=100" ;;
   security)
     $DC --profile test up -d --build mock-bridge
-    $DC --profile test run --rm tests pytest -q /repo/tests/security -m "not unit" -p no:cacheprovider ;;
+    $DC --profile test run --rm tests pytest -q security -p no:cacheprovider ;;
   eval)
     $DC --profile test up -d --build mock-bridge
-    $DC --profile test run --rm tests python /repo/tests/e2e/run_fixtures.py --report /repo/reports/eval.md ;;
+    $DC --profile test run --rm tests python /repo/tests/e2e/run_fixtures.py --report /repo/reports/eval.md --gate ;;
+  demo)
+    $DC --profile test up -d --build mock-bridge
+    $DC --profile test run --rm tests python /repo/tests/e2e/run_fixtures.py --only D1,D2,D3,D4,D5 --report /repo/reports/demo.md
+    $DC --profile test run --rm tests python /repo/tests/e2e/demo_campaign.py ;;
   demo-fixtures)
     $DC --profile test run --rm tests python /repo/tests/fixtures/make_fixtures.py ;;
+  build-workflows) "$PY" n8n/build_workflows.py ;;
+  reload-workflows)
+    "$PY" n8n/build_workflows.py
+    $DC restart n8n
+    wait_healthy ;;
   export-workflows) "$PY" scripts/export_workflows.py ;;
   *) echo "targets: env up down ps logs qr test security eval demo-fixtures check-secrets export-workflows"; exit 2 ;;
 esac
