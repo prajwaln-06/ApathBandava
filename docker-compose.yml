@@ -1,0 +1,209 @@
+# ScamSaathi — full stack (NFR-14). `make up` / `docker compose up -d`.
+# Host ports bind to 127.0.0.1 only. The sandbox lives alone on sandbox_net (NFR-2).
+name: scamsaathi
+
+x-restart: &restart
+  restart: unless-stopped
+
+networks:
+  core_net: {}
+  sandbox_net: {}
+
+volumes:
+  pgdata: {}
+  n8n_data: {}
+  bridge_store: {}
+  media: {}
+  shots: {}
+
+services:
+  postgres:
+    <<: *restart
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scamsaathi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-scamsaathi}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    networks: [core_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    <<: *restart
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}", "--save", "", "--appendonly", "no"]
+    networks: [core_net]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+  llm-gateway:
+    <<: *restart
+    build: ./llm-gateway
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-vertex}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash}
+      LLM_GATEWAY_TOKEN: ${LLM_GATEWAY_TOKEN:?set LLM_GATEWAY_TOKEN}
+      LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-20}
+      GCP_PROJECT: ${GCP_PROJECT:-}
+      GCP_LOCATION: ${GCP_LOCATION:-global}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp.json
+    volumes:
+      - ${GOOGLE_CREDENTIALS_FILE:-./docs/google_credentials.json}:/run/secrets/gcp.json:ro
+    networks: [core_net]
+
+  analyzer:
+    <<: *restart
+    build: { context: ./analyzer, target: runtime }
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-scamsaathi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-scamsaathi}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      SANDBOX_URL: http://sandbox:9000
+      MEDIA_DIR: /media,/media-fixtures
+      BRIDGE_HEALTH_URL: http://wa-bridge:8080/api/health
+      ANALYZER_TOKEN: ${ANALYZER_TOKEN:?set ANALYZER_TOKEN}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      SENDER_SALT: ${SENDER_SALT:?set SENDER_SALT}
+      GSB_API_KEY: ${GSB_API_KEY:-}
+      VT_API_KEY: ${VT_API_KEY:-}
+      URLHAUS_AUTH_KEY: ${URLHAUS_AUTH_KEY:-}
+      OPENPHISH_ENABLED: ${OPENPHISH_ENABLED:-true}
+      DETONATE_ENABLED: ${DETONATE_ENABLED:-true}
+      REPUTATION_OVERLAY: ${REPUTATION_OVERLAY:-/fixtures/reputation_overlay.yaml}
+      REGISTRY_INCLUDE_UNREVIEWED: ${REGISTRY_INCLUDE_UNREVIEWED:-true}
+      RATE_LIMIT_PER_HOUR: ${RATE_LIMIT_PER_HOUR:-20}
+    volumes:
+      - ./registry/seed:/registry/seed:ro
+      - ./db/migrations:/migrations:ro
+      - ./tests/fixtures/reputation_overlay.yaml:/fixtures/reputation_overlay.yaml:ro
+      - media:/media:ro
+      - ./tests/fixtures/images:/media-fixtures:ro
+    networks: [core_net, sandbox_net]
+    ports: ["127.0.0.1:8000:8000"]
+
+  sandbox:
+    <<: *restart
+    build: ./sandbox
+    networks: [sandbox_net]
+    cap_add: [NET_ADMIN]
+    read_only: true
+    tmpfs: ["/tmp:size=512m", "/run:size=8m"]
+    shm_size: 256m
+    mem_limit: 1536m
+    security_opt: ["no-new-privileges:true"]
+    volumes: [shots:/shots]
+    environment:
+      SANDBOX_TIMEOUT_S: "20"
+      SANDBOX_MAX_BYTES: "5242880"
+
+  wa-bridge:
+    <<: *restart
+    build: ./bridge
+    environment:
+      WEBHOOK_URL: http://n8n:5678/webhook/${BRIDGE_WEBHOOK_PATH:-wa-inbound}
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN:?set BRIDGE_TOKEN}
+      ADMIN_JID: ${ADMIN_JID:-}
+      SENDER_ALLOWLIST: ${SENDER_ALLOWLIST:-}
+      REPLY_WINDOW_HOURS: "24"
+    volumes: [bridge_store:/store, media:/media]
+    networks: [core_net]
+    ports: ["127.0.0.1:8080:8080"]
+
+  n8n:
+    <<: *restart
+    image: ${N8N_IMAGE:-n8nio/n8n:2.46.4}
+    depends_on:
+      analyzer: { condition: service_healthy }
+      llm-gateway: { condition: service_healthy }
+    entrypoint: ["/bin/sh", "/bootstrap/start.sh"]
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?set N8N_ENCRYPTION_KEY}
+      N8N_PORT: "5678"
+      N8N_WEBHOOK_URL: http://localhost:5678/
+      WEBHOOK_URL: http://localhost:5678/
+      GENERIC_TIMEZONE: Asia/Kolkata
+      TZ: Asia/Kolkata
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_SECURE_COOKIE: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      N8N_RUNNERS_TASK_TIMEOUT: "60"
+      N8N_PAYLOAD_SIZE_MAX: "16"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "168"
+      N8N_OWNER_EMAIL: ${N8N_OWNER_EMAIL:-admin@scamsaathi.local}
+      N8N_OWNER_PASSWORD: ${N8N_OWNER_PASSWORD:?set N8N_OWNER_PASSWORD}
+      ANALYZER_URL: http://analyzer:8000
+      ANALYZER_TOKEN: ${ANALYZER_TOKEN}
+      BRIDGE_URL: http://wa-bridge:8080
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN}
+      MOCK_BRIDGE_URL: http://mock-bridge:8090
+      TEST_TOKEN: ${TEST_TOKEN:?set TEST_TOKEN}
+      ADMIN_JID: ${ADMIN_JID:-}
+      LLM_GATEWAY_URL: http://llm-gateway:4000/v1
+      LLM_GATEWAY_TOKEN: ${LLM_GATEWAY_TOKEN}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash}
+      AGENT_TIMEOUT_MS: ${AGENT_TIMEOUT_MS:-20000}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+      - ./n8n/bootstrap:/bootstrap:ro
+    networks: [core_net]
+    ports: ["127.0.0.1:5678:5678"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5678/healthz | grep -q ok"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
+
+  # ---- test-only services (`--profile test`) --------------------------------------------
+  mock-bridge:
+    profiles: [test]
+    build: ./tests/mock_bridge
+    environment:
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN}
+    networks: [core_net]
+    ports: ["127.0.0.1:8090:8090"]
+
+  tests:
+    profiles: [test]
+    build: { context: ./analyzer, target: test }
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      TEST_DATABASE_URL: postgresql://${POSTGRES_USER:-scamsaathi}:${POSTGRES_PASSWORD}@postgres:5432/scamsaathi_test
+      TEST_DATABASE_ADMIN_URL: postgresql://${POSTGRES_USER:-scamsaathi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-scamsaathi}
+      TEST_REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/15
+      N8N_URL: http://n8n:5678
+      ANALYZER_URL: http://analyzer:8000
+      ANALYZER_TOKEN: ${ANALYZER_TOKEN}
+      MOCK_BRIDGE_URL: http://mock-bridge:8090
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN}
+      TEST_TOKEN: ${TEST_TOKEN}
+      SANDBOX_URL: http://sandbox:9000
+      REGISTRY_DIR: /repo/registry/seed
+      MIGRATIONS_DIR: /repo/db/migrations
+    volumes:
+      - ./tests:/repo/tests
+      - ./registry:/repo/registry:ro
+      - ./db:/repo/db:ro
+      - ./n8n:/repo/n8n:ro
+      - ./reports:/repo/reports
+    networks: [core_net, sandbox_net]
