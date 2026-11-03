@@ -1,0 +1,308 @@
+{
+  "id": "ss20health000001",
+  "name": "20-health",
+  "active": true,
+  "nodes": [
+    {
+      "id": "a63e2b74-706f-5180-b5ff-9d6af2f297d8",
+      "name": "Every 60 s",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 60
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1d7013fc-c768-5949-8e7f-67b15b914725",
+      "name": "Bridge /api/health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.BRIDGE_URL }}/api/health",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "e7798c60-0bcc-5956-9d8f-4699a5d29631",
+      "name": "Detect unlinked (state change)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\nconst s = $getWorkflowStaticData('global');\nconst h = $input.first().json || {};\nconst ok = h.status === 'ok' && h.logged_in === true;\nconst prev = s.ok;\ns.ok = ok;\nif (prev === undefined && ok) return [];\nif (prev === ok) return [];\nconst msg = ok ? '✅ ScamSaathi bridge is linked again.'\n  : '⚠️ ScamSaathi WhatsApp bridge is UNLINKED or down. Run `make qr` and scan the QR code from the bot phone (WhatsApp > Linked devices).';\nreturn [{ json: { ok, message: msg, alert_url: $env.ALERT_WEBHOOK_URL || '' } }];\n"
+      }
+    },
+    {
+      "id": "4bee44c6-3095-53d2-bed3-ec0186d7e193",
+      "name": "Out-of-band hook set?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        -100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "550a02bf-7f40-588c-b75d-e51c5e47b2f5",
+              "leftValue": "={{ $json.alert_url }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "44917628-7a0f-58ae-b84e-78106d55223a",
+      "name": "Alert hook (works while WhatsApp is down)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.alert_url }}",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.message }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "ee195377-36fb-53b0-898b-7401791edb05",
+      "name": "ADMIN_JID set?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "01ddbb47-6759-507e-b181-8b78ca2c3f69",
+              "leftValue": "={{ $env.ADMIN_JID }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "9cdb7bf6-8ddd-5840-9700-2ec3ac2a97f7",
+      "name": "Set recipient = ADMIN_JID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8054ce2-4bb8-5328-971a-fb3cbcc9b227",
+              "name": "recipient",
+              "value": "={{ $env.ADMIN_JID }}",
+              "type": "string"
+            },
+            {
+              "id": "a64e1678-92cf-5e97-b5a0-1cdf6b7d2fc9",
+              "name": "message",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "780bc829-309a-5da7-bd9e-0bb00ef9159d",
+      "name": "WhatsApp admin alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BRIDGE_URL }}/api/send",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.recipient, message: $json.message }) }}"
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Every 60 s": {
+      "main": [
+        [
+          {
+            "node": "Bridge /api/health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bridge /api/health": {
+      "main": [
+        [
+          {
+            "node": "Detect unlinked (state change)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect unlinked (state change)": {
+      "main": [
+        [
+          {
+            "node": "Out-of-band hook set?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ADMIN_JID set?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Out-of-band hook set?": {
+      "main": [
+        [
+          {
+            "node": "Alert hook (works while WhatsApp is down)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ADMIN_JID set?": {
+      "main": [
+        [
+          {
+            "node": "Set recipient = ADMIN_JID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set recipient = ADMIN_JID": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp admin alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "versionId": "17397936-88d6-5191-bc4b-6109be9a2f6e",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

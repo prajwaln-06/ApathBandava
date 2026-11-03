@@ -1,0 +1,189 @@
+{
+  "id": "ss00echo00000001",
+  "name": "00-echo",
+  "active": true,
+  "nodes": [
+    {
+      "id": "261f511e-6007-5290-93b7-986b0b786bde",
+      "name": "WA inbound (echo)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wa-echo",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "65007315-24be-526b-8ac1-a726bd94ba5d",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "bridgeToken00001",
+          "name": "Bridge webhook token"
+        }
+      }
+    },
+    {
+      "id": "36693ba5-24c5-5111-8bc8-312738721f1e",
+      "name": "Direct text?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c31d947b-96d6-578a-95bb-056ac820d292",
+              "leftValue": "={{ $json.body.chat_type }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "direct"
+            },
+            {
+              "id": "78ad332e-9b47-5a33-8eb6-dbb595bba7b3",
+              "leftValue": "={{ $json.body.type }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "text"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "92eaf350-3218-5316-819c-2abb76ba3fac",
+      "name": "Set recipient = sender_jid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        -20
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0a61e8a-c2e1-5042-bbad-321cd81b1d88",
+              "name": "recipient",
+              "value": "={{ $('WA inbound (echo)').first().json.body.sender_jid }}",
+              "type": "string"
+            },
+            {
+              "id": "13e63c22-106d-5b64-ad73-dda129e13dee",
+              "name": "message",
+              "value": "={{ 'Echo: ' + String($('WA inbound (echo)').first().json.body.text || '').slice(0, 1000) }}",
+              "type": "string"
+            },
+            {
+              "id": "cf970766-c801-5c10-b1c7-e7deba236127",
+              "name": "send_url",
+              "value": "={{ ($('WA inbound (echo)').first().json.headers['x-test-token'] || '') === $env.TEST_TOKEN && $env.TEST_TOKEN ? $env.MOCK_BRIDGE_URL : $env.BRIDGE_URL }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c37ff2c5-61b1-5468-b8ab-1703be7f0eb7",
+      "name": "Send via bridge /api/send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        -20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.send_url }}/api/send",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.recipient, message: $json.message }) }}"
+      }
+    }
+  ],
+  "connections": {
+    "WA inbound (echo)": {
+      "main": [
+        [
+          {
+            "node": "Direct text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Direct text?": {
+      "main": [
+        [
+          {
+            "node": "Set recipient = sender_jid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set recipient = sender_jid": {
+      "main": [
+        [
+          {
+            "node": "Send via bridge /api/send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "versionId": "9cdf77fa-82fa-5f5a-9d7c-06b304561d98",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
