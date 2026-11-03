@@ -1,0 +1,262 @@
+{
+  "id": "ss40campaign0001",
+  "name": "40-campaigns",
+  "active": true,
+  "nodes": [
+    {
+      "id": "418df2cc-2d79-5b5c-b7c5-b5057d5ee32b",
+      "name": "Hourly",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "584ba126-7161-5040-b081-38c1530064c1",
+      "name": "Privacy purge (raw text > 7 days)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/maintenance/purge",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}"
+      }
+    },
+    {
+      "id": "ceab096c-6626-54fd-951e-d904e0bf7c4a",
+      "name": "Open campaigns digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/campaigns/digest",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ hours: 1 }) }}"
+      }
+    },
+    {
+      "id": "bf31bbcb-1063-507a-8cb3-3b7a51da3bf2",
+      "name": "New campaigns & ADMIN_JID?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d904480f-f327-5184-9ed7-f05a39c7096d",
+              "leftValue": "={{ ($json.campaigns || []).length > 0 && !!$env.ADMIN_JID }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "9cdb7bf6-8ddd-5840-9700-2ec3ac2a97f7",
+      "name": "Set recipient = ADMIN_JID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8054ce2-4bb8-5328-971a-fb3cbcc9b227",
+              "name": "recipient",
+              "value": "={{ $env.ADMIN_JID }}",
+              "type": "string"
+            },
+            {
+              "id": "a64e1678-92cf-5e97-b5a0-1cdf6b7d2fc9",
+              "name": "message",
+              "value": "={{ '📊 Campaigns in the last hour:\\n' + $json.campaigns.map(c => `#${c.id} ${c.kind} ${c.sample_value} — ${c.sender_count} senders`).join('\\n') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3c8270d3-4f6b-5220-a612-b4e143e8ac8d",
+      "name": "Send digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BRIDGE_URL }}/api/send",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.recipient, message: $json.message }) }}"
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Hourly": {
+      "main": [
+        [
+          {
+            "node": "Privacy purge (raw text > 7 days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Privacy purge (raw text > 7 days)": {
+      "main": [
+        [
+          {
+            "node": "Open campaigns digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open campaigns digest": {
+      "main": [
+        [
+          {
+            "node": "New campaigns & ADMIN_JID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New campaigns & ADMIN_JID?": {
+      "main": [
+        [
+          {
+            "node": "Set recipient = ADMIN_JID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set recipient = ADMIN_JID": {
+      "main": [
+        [
+          {
+            "node": "Send digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "versionId": "29c66764-658c-5e08-a3bf-2fde44a06d58",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

@@ -50,9 +50,10 @@ services:
     build: ./llm-gateway
     environment:
       LLM_PROVIDER: ${LLM_PROVIDER:-vertex}
-      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       LLM_GATEWAY_TOKEN: ${LLM_GATEWAY_TOKEN:?set LLM_GATEWAY_TOKEN}
       LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-20}
+      LLM_REASONING_EFFORT: ${LLM_REASONING_EFFORT:-minimal}
       GCP_PROJECT: ${GCP_PROJECT:-}
       GCP_LOCATION: ${GCP_LOCATION:-global}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
@@ -156,7 +157,7 @@ services:
       ADMIN_JID: ${ADMIN_JID:-}
       LLM_GATEWAY_URL: http://llm-gateway:4000/v1
       LLM_GATEWAY_TOKEN: ${LLM_GATEWAY_TOKEN}
-      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
       AGENT_TIMEOUT_MS: ${AGENT_TIMEOUT_MS:-20000}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
     volumes:
@@ -198,6 +199,9 @@ services:
       MOCK_BRIDGE_URL: http://mock-bridge:8090
       BRIDGE_TOKEN: ${BRIDGE_TOKEN}
       TEST_TOKEN: ${TEST_TOKEN}
+      SENDER_SALT: ${SENDER_SALT}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      ADMIN_JID: ${ADMIN_JID:-}
       SANDBOX_URL: http://sandbox:9000
       REGISTRY_DIR: /repo/registry/seed
       MIGRATIONS_DIR: /repo/db/migrations
@@ -209,4 +213,5 @@ services:
       - ./db:/repo/db:ro
       - ./n8n:/repo/n8n:ro
       - ./reports:/repo/reports
+      - ./docker-compose.yml:/repo/docker-compose.yml:ro
     networks: [core_net, sandbox_net]

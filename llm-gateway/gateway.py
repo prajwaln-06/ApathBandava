@@ -37,6 +37,7 @@ GCP_PROJECT = os.getenv("GCP_PROJECT", "")
 GCP_LOCATION = os.getenv("GCP_LOCATION", "global")
 BASE_URL = os.getenv("LLM_BASE_URL", "").rstrip("/")
 API_KEY = os.getenv("LLM_API_KEY", "")
+REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "")  # e.g. "low" for latency (NFR-6)
 
 ALLOWED_KEYS = {
     "model", "messages", "tools", "tool_choice", "temperature", "top_p", "max_tokens",
@@ -101,6 +102,8 @@ def prepare(body: dict[str, Any], model: str) -> dict[str, Any]:
     if "max_completion_tokens" in body and "max_tokens" not in out:
         out["max_tokens"] = body["max_completion_tokens"]
     out["model"] = model
+    if REASONING_EFFORT and "reasoning_effort" not in out:
+        out["reasoning_effort"] = REASONING_EFFORT
     for msg in out.get("messages", []):
         if msg.get("role") == "assistant":
             for call in msg.get("tool_calls") or []:

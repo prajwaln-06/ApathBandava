@@ -1,0 +1,1268 @@
+{
+  "id": "ss10check0000001",
+  "name": "10-check",
+  "active": true,
+  "nodes": [
+    {
+      "id": "b2277008-5462-5f9c-b7af-fbadffd0d851",
+      "name": "WA inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wa-inbound",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "91e9aad8-8db2-5a9d-a38e-1eb781b95f6f",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "bridgeToken00001",
+          "name": "Bridge webhook token"
+        }
+      }
+    },
+    {
+      "id": "f7033034-39e5-528d-999e-249467e3682e",
+      "name": "Trace + sender",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6115dd84-f1b4-5bde-b3bb-b662452727a7",
+              "name": "sender_jid",
+              "value": "={{ $json.body.sender_jid }}",
+              "type": "string"
+            },
+            {
+              "id": "1b73d130-3485-5ffb-a24e-4cb72bd4247b",
+              "name": "msg",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "55f3dfa2-f502-5d34-a36d-633155a0a520",
+              "name": "test_mode",
+              "value": "={{ !!$env.TEST_TOKEN && ($json.headers['x-test-token'] || '') === $env.TEST_TOKEN }}",
+              "type": "boolean"
+            },
+            {
+              "id": "5cc7b120-7179-5cd5-8530-bf6d4b51d813",
+              "name": "send_url",
+              "value": "={{ (!!$env.TEST_TOKEN && ($json.headers['x-test-token'] || '') === $env.TEST_TOKEN) ? $env.MOCK_BRIDGE_URL : $env.BRIDGE_URL }}",
+              "type": "string"
+            },
+            {
+              "id": "db834bb1-e413-5309-bfad-9590b226b1b7",
+              "name": "received_at",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c9370187-544b-57c9-888c-b8f9607b64e5",
+      "name": "Direct chat? (drop group/status)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "23f56d14-2176-5a82-9bfd-5f8c5027fab9",
+              "leftValue": "={{ $json.msg.chat_type }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "direct"
+            },
+            {
+              "id": "033da1bc-8cc6-5103-b6ea-b37dd7df1af3",
+              "leftValue": "={{ /@(g\\.us|broadcast|newsletter)$/.test($json.sender_jid || '') }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              },
+              "rightValue": ""
+            },
+            {
+              "id": "799f2978-3eb9-53f7-ae30-cb8dbb64bd57",
+              "leftValue": "={{ $json.sender_jid }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "b11ff754-c25c-5201-aabe-cc8e7f77ca75",
+      "name": "Intake guard (dedupe + Redis rate limit)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/intake/guard",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.msg) }}"
+      }
+    },
+    {
+      "id": "4512d8ae-9571-5e57-855c-1ef36c44a62c",
+      "name": "Route",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cb4e578b-3f3a-5a15-b12c-f3e2a0069a6f",
+                    "leftValue": "={{ $json.action }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "check"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "check"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4dbf20d2-956c-5daf-9061-30553494ccf2",
+                    "leftValue": "={{ $json.action }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "reply"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reply"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6eb4734e-9c8d-5578-85b3-a923db4780bc",
+      "name": "Set recipient = sender_jid (canned)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        220
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "95d9d1cd-b750-5f81-a231-5e636246c308",
+              "name": "recipient",
+              "value": "={{ $('Trace + sender').first().json.sender_jid }}",
+              "type": "string"
+            },
+            {
+              "id": "e8e64a66-e627-5c27-8af8-534c42c2edff",
+              "name": "message",
+              "value": "={{ $json.reply }}",
+              "type": "string"
+            },
+            {
+              "id": "be08a356-a0c8-5b50-a7fa-5d57cd123ac4",
+              "name": "send_url",
+              "value": "={{ $('Trace + sender').first().json.send_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aa3935f0-2c34-5031-b5c9-a75a5137a2ab",
+      "name": "Send canned reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        220
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.send_url }}/api/send",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.recipient, message: $json.message }) }}"
+      }
+    },
+    {
+      "id": "5f67d51f-b80f-5c00-97e6-8235a06bc201",
+      "name": "Send \"Checking…\"",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Trace + sender').first().json.send_url }}/api/send",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $('Trace + sender').first().json.sender_jid, message: $json.checking }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "0cecd236-3f8d-555b-a8f1-5e5738b1dbda",
+      "name": "/extract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/extract",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: [$('Trace + sender').first().json.msg.text, $('Trace + sender').first().json.msg.caption].filter(Boolean).join('\\n'), image_path: $('Trace + sender').first().json.msg.media_path || null }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "a7e7a932-7752-519f-b8ce-060db52a00e9",
+      "name": "Cache lookup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/cache/lookup",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ extract: $json, text: [$('Trace + sender').first().json.msg.text, $('Trace + sender').first().json.msg.caption].filter(Boolean).join('\\n') }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "17b82d22-1261-56ad-a8a8-d49228882ccc",
+      "name": "Cache hit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7b267d86-7d02-53e4-b79d-b220e6447f96",
+              "leftValue": "={{ $json.hit === true }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "3e8d8757-d037-566f-8892-d3f47da6ee1e",
+      "name": "Use cached verdict",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1980,
+        -220
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91f461cb-b2da-564c-bebe-e7f917c28974",
+              "name": "verdict",
+              "value": "={{ $json.result.verdict }}",
+              "type": "object"
+            },
+            {
+              "id": "35a10d53-8c2d-55ea-8597-ff9dc4bba88d",
+              "name": "context",
+              "value": "={{ Object.assign({}, $json.result.context, { language: $('Intake guard (dedupe + Redis rate limit)').first().json.language }) }}",
+              "type": "object"
+            },
+            {
+              "id": "09decbc8-d93a-5d1d-8d69-a2e828a1c8fd",
+              "name": "findings",
+              "value": "={{ [] }}",
+              "type": "array"
+            },
+            {
+              "id": "c6f939a6-1827-5813-a224-9a8e1f0dba21",
+              "name": "from_cache",
+              "value": "={{ true }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "87e599ad-75a7-59cb-b850-a58e48f5592b",
+      "name": "Build agent requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\n// Build one request per analysis agent + the deterministic rules baseline (run concurrently by the next node).\n// User text is DATA: it is wrapped in <untrusted> and any attempt to close/open the tag is neutralised.\nconst t = $('Trace + sender').first().json;\nconst g = $('Intake guard (dedupe + Redis rate limit)').first().json;\nconst ex = $('/extract').first().json || {};\nconst msg = t.msg || {};\nconst clean = s => String(s || '').replace(/<\\s*\\/?\\s*untrusted[^>]*>/gi, '[tag removed]').slice(0, 6000);\nconst userText = [msg.text, msg.caption].filter(Boolean).join('\\n');\nconst wrapped = `<untrusted source=\"user_message\">\\n${clean(userText)}\\n</untrusted>` +\n  (ex.ocr_text ? `\\n<untrusted source=\"ocr_text\">\\n${clean(ex.ocr_text)}\\n</untrusted>` : '') +\n  ((ex.qr_payloads || []).length ? `\\n<untrusted source=\"qr_payloads\">\\n${clean(ex.qr_payloads.join('\\n'))}\\n</untrusted>` : '');\nconst art = {\n  urls: ex.urls || [], upi_uris: ex.upi_uris || [], upi_ids: ex.upi_ids || [], phones: ex.phones || [],\n  sender_ids: ex.sender_ids || [], amounts: ex.amounts || [], brands: ex.brands || [],\n};\nconst artTxt = `Artifacts extracted by code (also untrusted data):\\n<untrusted source=\"artifacts\">\\n${clean(JSON.stringify(art))}\\n</untrusted>`;\nconst prompts = {\n  wording: `Analyse the wording of this forwarded item.\\n${wrapped}`,\n  link: `Check these links / UPI URIs.\\n${artTxt}\\nContext:\\n${wrapped}`,\n  impersonation: `Check claimed identity against the official registry.\\n${artTxt}\\nMessage text:\\n${wrapped}`,\n  scamtype: `Match this item against known scam playbooks.\\n${wrapped}`,\n};\nconst agentUrl = 'http://127.0.0.1:5678/webhook/agent';\nconst items = Object.entries(prompts).map(([agent, prompt]) => ({ json: {\n  agent, url: agentUrl, body: { agent, trace_id: g.trace_id, prompt } } }));\nitems.push({ json: { agent: 'rules', url: $env.ANALYZER_URL + '/rules/baseline',\n  body: { extract: ex, text: userText } } });\nreturn items;\n"
+      }
+    },
+    {
+      "id": "423a43b0-9911-5e28-817c-e8589f7503d8",
+      "name": "Run 4 AI agents + rules in parallel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 24000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "de3cbfa3-b2fc-5759-9b23-a8af024849d8",
+      "name": "Merge + schema validation (drop unknown codes)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\n// Merge agent results; validate against SRS 6.4; drop unknown codes; timeouts/errors -> unknown.\nconst CODES = new Set([\"APK_DOWNLOAD\", \"AT_IN_URL\", \"AUTHORITY_CLAIM\", \"CERT_AGE_LT_30D\", \"CREDENTIAL_REQUEST\", \"DOMAIN_AGE_LT_30D\", \"HOMOGLYPH_OR_BRAND_IN_SUBDOMAIN\", \"IP_HOST\", \"LOOKALIKE_DOMAIN\", \"PAGE_ASKS_PIN_OTP_CARD\", \"PERSONAL_UPI_PAYMENT\", \"PHONE_NOT_OFFICIAL\", \"PLAYBOOK_MATCH\", \"POLICY_VIOLATION\", \"PUNYCODE\", \"REGISTRY_DOMAIN_MISMATCH\", \"REGISTRY_FULL_MATCH\", \"REMOTE_ACCESS_REQUEST\", \"REWARD_LURE\", \"RISKY_TLD\", \"SENDER_ID_MISMATCH\", \"SHORTENER\", \"THREAT_FEED_HIT\", \"UPI_COLLECT_REQUEST\", \"UPI_HANDLE_NOT_OFFICIAL\", \"UPI_PAY_AS_RECEIVE\", \"URGENCY_LANGUAGE\"]);\nconst AGENTS = ['rules', 'wording', 'link', 'impersonation', 'scamtype'];  // deterministic evidence first\nconst SEV = {\"APK_DOWNLOAD\": \"medium\", \"AT_IN_URL\": \"medium\", \"AUTHORITY_CLAIM\": \"low\", \"CERT_AGE_LT_30D\": \"low\", \"CREDENTIAL_REQUEST\": \"medium\", \"DOMAIN_AGE_LT_30D\": \"medium\", \"HOMOGLYPH_OR_BRAND_IN_SUBDOMAIN\": \"high\", \"IP_HOST\": \"medium\", \"LOOKALIKE_DOMAIN\": \"high\", \"PAGE_ASKS_PIN_OTP_CARD\": \"high\", \"PERSONAL_UPI_PAYMENT\": \"medium\", \"PHONE_NOT_OFFICIAL\": \"medium\", \"PLAYBOOK_MATCH\": \"medium\", \"POLICY_VIOLATION\": \"high\", \"PUNYCODE\": \"low\", \"REGISTRY_DOMAIN_MISMATCH\": \"high\", \"REGISTRY_FULL_MATCH\": \"trust\", \"REMOTE_ACCESS_REQUEST\": \"high\", \"REWARD_LURE\": \"medium\", \"RISKY_TLD\": \"low\", \"SENDER_ID_MISMATCH\": \"medium\", \"SHORTENER\": \"low\", \"THREAT_FEED_HIT\": \"hard\", \"UPI_COLLECT_REQUEST\": \"high\", \"UPI_HANDLE_NOT_OFFICIAL\": \"medium\", \"UPI_PAY_AS_RECEIVE\": \"hard\", \"URGENCY_LANGUAGE\": \"low\"};  // authoritative table from analyzer/app/signals.py\nconst reqs = $('Build agent requests').all().map(i => i.json.agent);\nconst outs = $input.all().map(i => i.json);\nconst byAgent = {};\nreqs.forEach((agent, idx) => {\n  let o = outs[idx];\n  if (o && typeof o.output === 'object') o = o.output;\n  if (typeof o === 'string') { try { o = JSON.parse(o); } catch (e) { o = null; } }\n  const valid = o && typeof o === 'object' && ['ok', 'unknown'].includes(o.status) && Array.isArray(o.signals);\n  if (!valid) { byAgent[agent] = { agent, status: 'unknown', signals: [], summary: '' }; return; }\n  const signals = o.signals.filter(s => s && CODES.has(s.code)).slice(0, 12).map(s => ({\n    code: s.code, severity: SEV[s.code],\n    evidence: String(s.evidence || '').slice(0, 300),\n    source_url: (typeof s.source_url === 'string' && /^https?:\\/\\//.test(s.source_url)) ? s.source_url.slice(0, 500) : null,\n  }));\n  byAgent[agent] = { agent, status: o.status, signals, summary: String(o.summary || '').slice(0, 200) };\n});\nconst findings = AGENTS.map(a => byAgent[a] || { agent: a, status: 'unknown', signals: [], summary: '' });\nreturn [{ json: { findings, dropped: outs.length - findings.filter(f => f.status === 'ok').length } }];\n"
+      }
+    },
+    {
+      "id": "8cc70029-f329-5a78-aa36-ac16046cccd1",
+      "name": "/verdict",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/verdict",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ findings: $json.findings }) }}"
+      }
+    },
+    {
+      "id": "f6c585a0-b3e6-5175-92ea-866a3ea603c7",
+      "name": "Reply context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/reply/context",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ verdict: $json, extract: $('/extract').first().json, findings: $('Merge + schema validation (drop unknown codes)').first().json.findings, language: $('Intake guard (dedupe + Redis rate limit)').first().json.language, input_type: $('Trace + sender').first().json.msg.type, text: [$('Trace + sender').first().json.msg.text, $('Trace + sender').first().json.msg.caption].filter(Boolean).join('\\n') }) }}"
+      }
+    },
+    {
+      "id": "f141433e-50fe-5bcd-926d-566abfcc7f00",
+      "name": "Use fresh verdict",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3080,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc37991f-00ed-54f7-aa7f-ecdadddcb31f",
+              "name": "verdict",
+              "value": "={{ $('/verdict').first().json }}",
+              "type": "object"
+            },
+            {
+              "id": "f73e29f1-7c5b-5c06-8287-7318d6e8ad59",
+              "name": "context",
+              "value": "={{ $json }}",
+              "type": "object"
+            },
+            {
+              "id": "4974ab9a-0716-52e9-8687-2c3d9cde3351",
+              "name": "findings",
+              "value": "={{ $('Merge + schema validation (drop unknown codes)').first().json.findings }}",
+              "type": "array"
+            },
+            {
+              "id": "ca41e881-e938-57fd-a9cd-3c4721d4399f",
+              "name": "from_cache",
+              "value": "={{ false }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "91adb99d-19b8-5d57-9312-dc073bc1b69b",
+      "name": "Reply composer agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3300,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Verdict object (JSON):\\n' + JSON.stringify($json.context) }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "You write ScamSaathi's WhatsApp reply. Your input is ONLY the verdict object (verdict, reasons, sources, playbook_advice, helpline, language, special_line, hint). Write a reply of at most 900 characters: line 1 is the verdict with its emoji (🚫 SCAM, ⚠️ SUSPICIOUS, ✅ No red flags found); if special_line is present put it on line 2; up to 3 short reasons; one official source link if present; next steps (don't pay or share OTP/PIN; call 1930; cybercrime.gov.in; report on Sanchar Saathi → Chakshu; the institution's helpline if given). If hint is present add it as the last line. Never say \"safe\" (for NO_RED_FLAGS add a caution line). Never add facts, links or phone numbers that aren't in the input. Write in Hindi (Devanagari) if language is \"hi\", otherwise English. Output only the message text.",
+          "maxIterations": 2,
+          "enableStreaming": false
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "b382b235-bbf1-550b-8bb0-fb309e653984",
+      "name": "Composer model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3300,
+        200
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.LLM_MODEL }}"
+        },
+        "options": {
+          "temperature": 0.2,
+          "timeout": "={{ 15000 }}",
+          "maxRetries": 1
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "llmGateway000001",
+          "name": "LLM Gateway"
+        }
+      }
+    },
+    {
+      "id": "c7c9f112-ab59-5ba0-af98-9aee5c005388",
+      "name": "Validate reply (no 'safe', ≤900, no new links/numbers)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/reply/finalize",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.output || null, context: $('Pick verdict').first().json.context }) }}"
+      }
+    },
+    {
+      "id": "f9d46f87-233c-523b-b905-a9ed47c6bcf7",
+      "name": "Pick verdict",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3190,
+        -120
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "92eaf350-3218-5316-819c-2abb76ba3fac",
+      "name": "Set recipient = sender_jid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3740,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0a61e8a-c2e1-5042-bbad-321cd81b1d88",
+              "name": "recipient",
+              "value": "={{ $('Trace + sender').first().json.sender_jid }}",
+              "type": "string"
+            },
+            {
+              "id": "13e63c22-106d-5b64-ad73-dda129e13dee",
+              "name": "message",
+              "value": "={{ $json.reply }}",
+              "type": "string"
+            },
+            {
+              "id": "cf970766-c801-5c10-b1c7-e7deba236127",
+              "name": "send_url",
+              "value": "={{ $('Trace + sender').first().json.send_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4ddfd01d-b205-5ad8-9cfc-6e862a1c70d1",
+      "name": "Send reply /api/send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3960,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.send_url }}/api/send",
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.recipient, message: $json.message }) }}"
+      }
+    },
+    {
+      "id": "ddb39521-d5f4-5139-87a1-330e350bc4ef",
+      "name": "Postgres write (checks, artifacts, cache, campaigns)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4180,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ANALYZER_URL }}/checks/record",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Token",
+              "value": "={{ $env.ANALYZER_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ trace_id: $('Intake guard (dedupe + Redis rate limit)').first().json.trace_id, sender_hash: $('Intake guard (dedupe + Redis rate limit)').first().json.sender_hash, input_type: $('Trace + sender').first().json.msg.type, raw_text: [$('Trace + sender').first().json.msg.text, $('Trace + sender').first().json.msg.caption].filter(Boolean).join('\\n').slice(0, 5000), extract: $('/extract').first().json, findings: $('Pick verdict').first().json.findings, verdict: $('Pick verdict').first().json.verdict, context: $('Pick verdict').first().json.context, reply: $('Set recipient = sender_jid').first().json.message, latency_ms: Date.now() - $('Trace + sender').first().json.received_at, cache_key: $('Cache lookup').first().json.cache_key, from_cache: $('Pick verdict').first().json.from_cache, playbook_code: (($('Pick verdict').first().json.findings.find(x => x.agent === 'rules') || {signals: []}).signals.find(s => s.code === 'PLAYBOOK_MATCH') || {evidence: ''}).evidence.match(/\\(([A-Z_]+),/)?.[1] || null }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "588732b7-c731-5db8-87c8-399aaf5d0fb3",
+      "name": "Campaign alert?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4400,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7d589d2c-3f39-53f6-8ce8-96d78474f3c8",
+              "leftValue": "={{ ($json.campaign_alerts || []).length > 0 && !!$env.ADMIN_JID }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "9cdb7bf6-8ddd-5840-9700-2ec3ac2a97f7",
+      "name": "Set recipient = ADMIN_JID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4620,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8054ce2-4bb8-5328-971a-fb3cbcc9b227",
+              "name": "recipient",
+              "value": "={{ $env.ADMIN_JID }}",
+              "type": "string"
+            },
+            {
+              "id": "a64e1678-92cf-5e97-b5a0-1cdf6b7d2fc9",
+              "name": "message",
+              "value": "={{ '📣 ScamSaathi campaign alert\\n' + $json.campaign_alerts.map(a => `${a.kind}: ${a.value} — ${a.sender_count} senders in 6h` + (a.playbook_code ? ` (${a.playbook_code})` : '')).join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "b8c6e6c1-df41-52ba-935f-c7663028ae1c",
+              "name": "send_url",
+              "value": "={{ $('Trace + sender').first().json.send_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6d5ca570-d77f-5ad1-a355-9636e8d853dd",
+      "name": "Send admin alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4840,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.send_url }}/api/send",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Bridge-Token",
+              "value": "={{ $env.BRIDGE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.recipient, message: $json.message }) }}"
+      }
+    }
+  ],
+  "connections": {
+    "Composer model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reply composer agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WA inbound": {
+      "main": [
+        [
+          {
+            "node": "Trace + sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trace + sender": {
+      "main": [
+        [
+          {
+            "node": "Direct chat? (drop group/status)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Direct chat? (drop group/status)": {
+      "main": [
+        [
+          {
+            "node": "Intake guard (dedupe + Redis rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intake guard (dedupe + Redis rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route": {
+      "main": [
+        [
+          {
+            "node": "Send \"Checking…\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set recipient = sender_jid (canned)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set recipient = sender_jid (canned)": {
+      "main": [
+        [
+          {
+            "node": "Send canned reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send \"Checking…\"": {
+      "main": [
+        [
+          {
+            "node": "/extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/extract": {
+      "main": [
+        [
+          {
+            "node": "Cache lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache lookup": {
+      "main": [
+        [
+          {
+            "node": "Cache hit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache hit?": {
+      "main": [
+        [
+          {
+            "node": "Use cached verdict",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build agent requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build agent requests": {
+      "main": [
+        [
+          {
+            "node": "Run 4 AI agents + rules in parallel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run 4 AI agents + rules in parallel": {
+      "main": [
+        [
+          {
+            "node": "Merge + schema validation (drop unknown codes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge + schema validation (drop unknown codes)": {
+      "main": [
+        [
+          {
+            "node": "/verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/verdict": {
+      "main": [
+        [
+          {
+            "node": "Reply context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply context": {
+      "main": [
+        [
+          {
+            "node": "Use fresh verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use cached verdict": {
+      "main": [
+        [
+          {
+            "node": "Pick verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use fresh verdict": {
+      "main": [
+        [
+          {
+            "node": "Pick verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick verdict": {
+      "main": [
+        [
+          {
+            "node": "Reply composer agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply composer agent": {
+      "main": [
+        [
+          {
+            "node": "Validate reply (no 'safe', ≤900, no new links/numbers)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate reply (no 'safe', ≤900, no new links/numbers)": {
+      "main": [
+        [
+          {
+            "node": "Set recipient = sender_jid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set recipient = sender_jid": {
+      "main": [
+        [
+          {
+            "node": "Send reply /api/send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send reply /api/send": {
+      "main": [
+        [
+          {
+            "node": "Postgres write (checks, artifacts, cache, campaigns)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres write (checks, artifacts, cache, campaigns)": {
+      "main": [
+        [
+          {
+            "node": "Campaign alert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Campaign alert?": {
+      "main": [
+        [
+          {
+            "node": "Set recipient = ADMIN_JID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set recipient = ADMIN_JID": {
+      "main": [
+        [
+          {
+            "node": "Send admin alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "versionId": "979f6772-6db8-5c30-97a1-9f0e8dd19511",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
