@@ -154,3 +154,8 @@ def test_defang_keeps_upi_ids_and_www_sources():
     assert reply.defang("pay lic.maturity.desk@ybl", c) == "pay lic.maturity.desk@ybl"
     assert reply.defang("see https://www.business-standard.com/x", c) == "see https://www.business-standard.com/x"
     assert reply.defang("see https://www.evil.example/x", c) == "see hxxps://www[.]evil[.]example/x"
+
+
+def test_safe_inside_official_url_is_allowed():
+    c = ctx(sources=["https://www.kotak.bank.in/en/safe-banking.html"])
+    assert reply.validate_reply("🚫 SCAM\nSource: https://www.kotak.bank.in/en/safe-banking.html", c) == []

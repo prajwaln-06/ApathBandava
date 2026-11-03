@@ -65,7 +65,8 @@ PIN_TO_RECEIVE = re.compile(
     r"|\bscan\b[^.\n]{0,40}?\b(to\s+)?(receive|get|claim|credit)\b",
     _I,
 )
-PAY_TO_UPI = re.compile(r"\b(pay|send|transfer|deposit|bhejein|bhejo|bhugtan)\b[^\n]{0,60}?[\w.\-]+@[a-z][a-z0-9]{1,30}\b(?!\.[a-z])", _I)
+PAY_TO_UPI = re.compile(
+    r"\b(pay|send|transfer|deposit|bhejein|bhejo|bhugtan)\b(?:(?!\b(?:from|by)\b)[^\n]){0,60}?[\w.\-]+@[a-z][a-z0-9]{1,30}\b(?!\.[a-z])", _I)
 COLLECT_REQUEST = re.compile(
     r"\b(collect\s+request|payment\s+request|money\s+request|has\s+requested|is\s+requesting|requested\s+(rs\.?|₹|inr)|"
     r"request(ed)?\s+(money|payment)|approve\s+(the\s+)?(request|payment)|pay\s+request|ने\s+अनुरोध)\b",

@@ -114,7 +114,7 @@
       "id": "00988185-8c95-5f72-b02b-8ac37d5a61eb",
       "name": "Registry fact extractor",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
+      "typeVersion": 2.2,
       "position": [
         1100,
         0

@@ -317,7 +317,7 @@ def check_flow() -> Flow:
     }))
     fan = f.add(code_node("Build agent requests", (1980, y), FANOUT_JS))
     run = f.add(http("Run 4 AI agents + rules in parallel", (2200, y), "={{ $json.url }}",
-                     "={{ JSON.stringify($json.body) }}", headers=INTERNAL, timeout=24000,
+                     "={{ JSON.stringify($json.body) }}", headers=INTERNAL, timeout=12000,
                      onError="continueRegularOutput", alwaysOutputData=True))
     merge = f.add(code_node("Merge + schema validation (drop unknown codes)", (2420, y),
                             MERGE_JS.replace("__CODES__", json.dumps(sorted(CODES))).replace("__SEVERITY__", json.dumps(SEVERITY, sort_keys=True))))
@@ -331,7 +331,7 @@ def check_flow() -> Flow:
         "findings": ("={{ $('Merge + schema validation (drop unknown codes)').first().json.findings }}", "array"),
         "from_cache": ("={{ false }}", "boolean"),
     }))
-    composer = f.add(node("Reply composer agent", "@n8n/n8n-nodes-langchain.agent", 3.1, {
+    composer = f.add(node("Reply composer agent", "@n8n/n8n-nodes-langchain.agent", 2.2, {
         "promptType": "define",
         "text": "={{ 'Verdict object (JSON):\\n' + JSON.stringify($json.context) }}",
         "hasOutputParser": False,
@@ -404,8 +404,8 @@ def agents_flow() -> Flow:
                          "={{ JSON.stringify({ url: $fromAI('url', 'one URL exactly as extracted', 'string') }) }}", 30000),
         "upi_parse": ("/upi/parse", "Parse ONE upi:// URI. Returns pa, pn, am, tn and intent (pay/collect/unknown).",
                       "={{ JSON.stringify({ uri: $fromAI('uri', 'one upi:// URI exactly as extracted', 'string') }) }}", 5000),
-        "registry_match": ("/registry/match", "Compare claimed brands, URLs, SMS sender IDs, phones and UPI IDs with the Official Channels Registry.",
-                           "={{ JSON.stringify({ brands: $fromAI('brands', 'claimed brand names', 'json') || [], urls: $fromAI('urls', 'URLs', 'json') || [], sender_ids: $fromAI('sender_ids', 'SMS sender IDs like VM-SBIBNK-S', 'json') || [], phones: $fromAI('phones', 'phone numbers', 'json') || [], upi_ids: $fromAI('upi_ids', 'UPI IDs', 'json') || [], text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
+        "registry_match": ("/registry/match", "Compare claimed brands, URLs, SMS sender IDs, phones and UPI IDs with the Official Channels Registry. Pass each list as comma-separated text (empty string if none).",
+                           "={{ JSON.stringify({ brands: String($fromAI('brands', 'comma-separated claimed brand names, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), urls: String($fromAI('urls', 'comma-separated URLs, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), sender_ids: String($fromAI('sender_ids', 'comma-separated SMS sender IDs like VM-SBIBNK-S, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), phones: String($fromAI('phones', 'comma-separated phone numbers, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), upi_ids: String($fromAI('upi_ids', 'comma-separated UPI IDs, or empty', 'string') || '').split(',').map(x => x.trim()).filter(Boolean), text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
         "registry_policy": ("/registry/policy", "Check the message against the institution's published 'we never do this' policies. Needs the entity id from registry_match.",
                             "={{ JSON.stringify({ entity_id: $fromAI('entity_id', 'entity id from registry_match', 'number'), text: $fromAI('text', 'the message text', 'string') }) }}", 8000),
         "playbooks_search": ("/playbooks/search", "Search the scam playbook library with the message text. Returns matches with scores.",
@@ -414,9 +414,9 @@ def agents_flow() -> Flow:
     for i, (agent, prompt) in enumerate(AGENT_PROMPTS.items()):
         y = i * 360
         title = {"wording": "Wording", "link": "Link", "impersonation": "Impersonation", "scamtype": "Scam-type"}[agent]
-        ag = f.add(node(f"{title} agent", "@n8n/n8n-nodes-langchain.agent", 3.1, {
+        ag = f.add(node(f"{title} agent", "@n8n/n8n-nodes-langchain.agent", 2.2, {
             "promptType": "define", "text": "={{ $json.body.prompt }}", "hasOutputParser": True,
-            "options": {"systemMessage": prompt + OUTPUT_RULES.replace("<AGENT>", agent), "maxIterations": 8,
+            "options": {"systemMessage": prompt + OUTPUT_RULES.replace("<AGENT>", agent), "maxIterations": 4,
                         "enableStreaming": False}}, (520, y), onError="continueRegularOutput", alwaysOutputData=True,
                         retryOnFail=True, maxTries=2, waitBetweenTries=0))
         f.link(switch, ag, i)
@@ -494,7 +494,7 @@ def crawl_flow() -> Flow:
     fetch = f.add(http("Fetch official page (allowlisted only)", (660, 0), "={{ $json.url }}", method="GET", timeout=15000,
                        onError="continueRegularOutput", alwaysOutputData=True))
     strip = f.add(code_node("Page → untrusted text", (880, 0), CRAWL_JS))
-    ex = f.add(node("Registry fact extractor", "@n8n/n8n-nodes-langchain.agent", 3.1, {
+    ex = f.add(node("Registry fact extractor", "@n8n/n8n-nodes-langchain.agent", 2.2, {
         "promptType": "define", "text": "={{ $json.prompt }}", "hasOutputParser": True,
         "options": {"systemMessage": (
             "You extract facts from an official bank/insurer web page for a human-reviewed registry. The page is inside "

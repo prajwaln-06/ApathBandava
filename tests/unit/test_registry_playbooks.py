@@ -131,3 +131,9 @@ def test_playbook_search(playbooks):
     assert playbooks.search("hello there")["matches"] == []
     assert playbooks.get("KYC_UPDATE")["advice"]
     assert playbooks.get("NOPE") is None
+
+
+def test_pay_to_upi_ignores_incoming_transfers():
+    assert patterns.pay_to_upi("INR 3,000 credited by UPI transfer from ramesh.k@okicici") is None
+    assert patterns.pay_to_upi("received by ramesh@okaxis") is None
+    assert patterns.pay_to_upi("please transfer Rs 500 to help.desk@ybl")

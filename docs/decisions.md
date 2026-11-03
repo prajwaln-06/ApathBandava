@@ -20,3 +20,12 @@ One line each: date — decision — reason.
 - 2026-11-04 — Hard combo `REGISTRY_DOMAIN_MISMATCH + ASKS_PIN_OTP_CARD` is implemented as mismatch + (`CREDENTIAL_REQUEST` or `PAGE_ASKS_PIN_OTP_CARD`) — the SRS names no ASKS_PIN_OTP_CARD code.
 - 2026-11-04 — Bridge alerts on unlink go to `ALERT_WEBHOOK_URL` (out-of-band) and to ADMIN_JID — a WhatsApp alert cannot be delivered while the bridge itself is unlinked.
 - 2026-11-04 — Dev sender allowlist (`SENDER_ALLOWLIST`) in the bridge — the owner has only personal numbers; the bot must not answer anyone else.
+- 2026-11-04 — LLM is `gemini-3.5-flash-lite` with `reasoning_effort: minimal` (gateway default) — ~1 s per call vs ~2.5 s for Flash; hard signals come from the deterministic baseline, so agent depth matters less than latency (NFR-6).
+- 2026-11-04 — The gateway hedges slow calls (duplicate request after 1.8 s, first answer wins, max 3) — Vertex has a long tail (single calls of 8–16 s observed); hedging cut demo p95 from 18 s to 7 s.
+- 2026-11-04 — AI Agent nodes use typeVersion 2.2 — v3.x occasionally hung after the first model call (sub-executions marked "crashed" after minutes); v2.2 runs tools inside the node and did not hang.
+- 2026-11-04 — Agent fan-out timeout is 12 s (brief says >20 s → unknown) — needed for NFR-6 p95 < 15 s; a timed-out agent still becomes `{status:"unknown", signals:[]}` and the verdict runs.
+- 2026-11-04 — List-valued tool arguments (`registry_match`) are passed as comma-separated strings — n8n's `$fromAI(..., 'json')` rejects empty arrays, which made the Impersonation agent fail on messages without URLs.
+- 2026-11-04 — Agent nodes retry once on failure and are capped at 4 iterations — Structured Output Parser rejections otherwise become `unknown`; one Scam-type run looped 14 model calls.
+- 2026-11-04 — Evaluation scoring: a scam counts as detected when the verdict is SCAM or SUSPICIOUS; a legit item is a false positive only when flagged (SCAM/SUSPICIOUS); FR-6 off-topic replies count as "not flagged"; injection passes when detection is not suppressed and no message goes to anyone but the sender (campaign alerts to ADMIN_JID are allowed).
+- 2026-11-04 — Non-official links in replies are defanged (`hxxps://evil[.]example`) — evidence can name the scam link without making it clickable in WhatsApp.
+- 2026-11-04 — Merge orders findings rules-first and uses the authoritative severity table — reasons quote the deterministic evidence (e.g. "This QR sends ₹1,499 FROM your account") instead of bare artifacts from an LLM.

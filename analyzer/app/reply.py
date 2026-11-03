@@ -159,7 +159,7 @@ def validate_reply(text: Any, ctx: dict[str, Any]) -> list[str]:
     first = text.strip().splitlines()[0]
     if EMOJI.get(v, "") not in first or any(e in first for k, e in EMOJI.items() if k != v):
         problems.append("verdict_line")
-    if BANNED.search(text):
+    if BANNED.search(URL_IN_TEXT.sub(" ", text)):  # "safe" inside an official URL path is fine
         problems.append("says_safe")
     allowed_hosts = _official_hosts(ctx)
     ctx_text = " ".join([*(ctx.get("reasons") or []), ctx.get("special_line") or "", ctx.get("playbook_advice") or ""])

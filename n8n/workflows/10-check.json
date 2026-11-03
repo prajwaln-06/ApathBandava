@@ -503,7 +503,7 @@
         "method": "POST",
         "url": "={{ $json.url }}",
         "options": {
-          "timeout": 24000,
+          "timeout": 12000,
           "response": {
             "response": {
               "neverError": true
@@ -652,7 +652,7 @@
       "id": "91adb99d-19b8-5d57-9312-dc073bc1b69b",
       "name": "Reply composer agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
+      "typeVersion": 2.2,
       "position": [
         3300,
         0

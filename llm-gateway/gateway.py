@@ -14,6 +14,7 @@ Prompts and completions are never logged (NFR-10); only latency, status and tool
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -32,7 +33,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 PROVIDER = os.getenv("LLM_PROVIDER", "vertex")
 MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash")
 TOKEN = os.getenv("LLM_GATEWAY_TOKEN", "")
-TIMEOUT = float(os.getenv("LLM_TIMEOUT_S", "20"))
+TIMEOUT = float(os.getenv("LLM_TIMEOUT_S", "12"))  # per attempt; hedging handles slow calls (NFR-6)
+ATTEMPTS = int(os.getenv("LLM_ATTEMPTS", "3"))
 GCP_PROJECT = os.getenv("GCP_PROJECT", "")
 GCP_LOCATION = os.getenv("GCP_LOCATION", "global")
 BASE_URL = os.getenv("LLM_BASE_URL", "").rstrip("/")
@@ -151,6 +153,51 @@ def _sse(resp: dict[str, Any]):
     yield "data: [DONE]\n\n"
 
 
+HEDGE_AFTER = float(os.getenv("LLM_HEDGE_AFTER_S", "2.5"))
+RETRYABLE = (429, 500, 502, 503)
+
+
+async def hedged_post(client: httpx.AsyncClient, url: str, headers: dict[str, str], payload: dict[str, Any]) -> httpx.Response:
+    """Hedged request: if the first call is still running after HEDGE_AFTER seconds, fire a duplicate and
+    take whichever answers first (cuts provider tail latency, NFR-6). Up to ATTEMPTS calls in total."""
+    pending: set[asyncio.Task] = set()
+    last_error: httpx.Response | None = None
+    started = 0
+
+    def launch() -> None:
+        nonlocal started
+        started += 1
+        pending.add(asyncio.create_task(client.post(url, headers=headers, json=payload)))
+
+    launch()
+    try:
+        while pending:
+            done, _ = await asyncio.wait(pending, timeout=HEDGE_AFTER if started < ATTEMPTS else None,
+                                         return_when=asyncio.FIRST_COMPLETED)
+            if not done:  # still slow -> hedge
+                log.info("hedging slow upstream call (%s in flight)", len(pending))
+                launch()
+                continue
+            for task in done:
+                pending.discard(task)
+                try:
+                    resp = task.result()
+                except httpx.HTTPError as exc:
+                    log.warning("upstream attempt failed: %s", type(exc).__name__)
+                    resp = None
+                if resp is not None and resp.status_code not in RETRYABLE:
+                    return resp
+                last_error = resp or last_error
+            if not pending and started < ATTEMPTS:
+                launch()
+    finally:
+        for task in pending:
+            task.cancel()
+    if last_error is not None:
+        return last_error
+    raise HTTPException(504, "upstream timeout")
+
+
 @app.post("/v1/chat/completions")
 async def chat(request: Request):
     check_auth(request)
@@ -160,15 +207,8 @@ async def chat(request: Request):
     payload = prepare(body, model)
     tools = [t.get("function", {}).get("name") for t in payload.get("tools", [])]
     t0 = time.monotonic()
-    resp = None
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        for attempt in range(2):
-            try:
-                resp = await client.post(url, headers=headers, json=payload)
-            except httpx.TimeoutException:
-                raise HTTPException(504, "upstream timeout")
-            if resp.status_code not in (429, 500, 502, 503) or attempt == 1:
-                break
+        resp = await hedged_post(client, url, headers, payload)
     ms = int((time.monotonic() - t0) * 1000)
     log.info("chat model=%s status=%s ms=%s tools=%s stream=%s", model, resp.status_code, ms, tools, stream)
     if resp.status_code != 200:
